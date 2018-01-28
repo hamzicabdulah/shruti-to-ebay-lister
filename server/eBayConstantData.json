@@ -1,0 +1,80 @@
+{
+    "APICallNames": {
+        "GET_CATEGORIES": "GetCategories",
+        "ADD_ITEM": "AddItem",
+        "GET_SESSION_ID": "GetSessionID",
+        "GET_EBAY_DETAILS": "GeteBayDetails"
+    },
+    "listingTypes": {
+        "AD_TYPE": "AdType",
+        "CHINESE": "Chinese",
+        "CUSTOM_CODE": "CustomCode",
+        "FIXED_PRICE_ITEM": "FixedPriceItem",
+        "LEAD_GENERATION": "LeadGeneration"
+    },
+    "paymentMethods": [
+        "AmEx",
+        "CashInPerson",
+        "CashOnPickup",
+        "CCAccepted",
+        "COD",
+        "CODPrePayDelivery",
+        "CreditCard",
+        "CustomCode",
+        "Diners",
+        "DirectDebit",
+        "Discover",
+        "ELV",
+        "Escrow",
+        "IntegratedMerchantCreditCard",
+        "LoanCheck",
+        "MOCC",
+        "MoneyXferAccepted",
+        "MoneyXferAcceptedInCheckout",
+        "None",
+        "Other",
+        "OtherOnlinePayments",
+        "PaisaPayAccepted",
+        "PaisaPayEscrow",
+        "PaisaPayEscrowEMI",
+        "PaymentSeeDescription",
+        "PayOnPickup",
+        "PayPal",
+        "PayPalCredit",
+        "PayUponInvoice",
+        "PersonalCheck",
+        "PostalTransfer",
+        "PrePayDelivery",
+        "VisaMC"
+    ],
+    "APICompatibility": 967,
+    "XMLReqBody": {
+        "defaultRoot": "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
+        "XMLNSDefaultAttribute": "urn:ebay:apis:eBLBaseComponents",
+        "commonElements": "<ErrorLanguage>en_US</ErrorLanguage><WarningLevel>High</WarningLevel>"
+    },
+    "detailNames": {
+        "COUNTRY_DETAILS": "CountryDetails",
+        "SITE_DETAILS": "SiteDetails",
+        "CURRENCY_DETAILS": "CurrencyDetails",
+        "SHIPPING_SERVICE_DETAILS": "ShippingServiceDetails"
+    },
+    "returnsAcceptedOptions": {
+        "RETURNS_ACCEPTED": "ReturnsAccepted",
+        "RETURNS_NOT_ACCEPTED": "ReturnsNotAccepted"
+    },
+    "shippingCostPaidByOptions": {
+        "BUYER": "Buyer",
+        "SELLER": "Seller"
+    },
+    "refundOptions": {
+        "MONEY_BACK": "MoneyBack",
+        "MONEY_BACK_OR_REPLACEMENT": "MoneyBackOrReplacement",
+        "MONEY_BACK_OR_EXCHANGE": "MoneyBackOrExchange"
+    },
+    "returnsWithinOptions": {
+        "DAYS_14": "Days_14",
+        "DAYS_30": "Days_30",
+        "DAYS_60": "Days_60"
+    }
+}

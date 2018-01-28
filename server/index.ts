@@ -28,34 +28,4 @@ if (!module.parent) {
         if (err) throw err;
         else console.log('Listening on port ' + port);
     });
-    const ebay = new EBay();
-    ebay.addItem({
-        title: 'Some product',
-        description: 'string',
-        categoryID: 377,
-        startPrice: 1100,
-        country: 'US',
-        currency: 'USD',
-        conditionID: 1000,
-        dispatchTimeMax: 2,
-        listingDuration: 'Days_7',
-        listingType: 'Chinese',
-        paymentMethods: ['PayPal'],
-        paypalEmail: 'abdulahhamzic@gmail.com',
-        pictureURLs: ['http://i16.ebayimg.com/01/c/03/c2/9d/d5_6.JPG'],
-        postalCode: '94155',
-        quantity: 1,
-        returnsAccepted: 'ReturnsAccepted',
-        refund: 'MoneyBack',
-        returnPolicyDescription: 'string',
-        returnsWithin: 'Days_14',
-        shippingCostPaidBy: 'Buyer',
-        shippingType: 'Flat',
-        shippingServicePriority: 1,
-        domesticShippingService: 'USPSMedia',
-        shippingServiceCost: 2,
-        site: 'US'
-    })
-    .then(res => console.log(res))
-    .catch(err => console.error(err));
 }
