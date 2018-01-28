@@ -1,0 +1,17 @@
+
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "module": "commonjs",
+    "noImplicitAny": true,
+    "outDir": "./public/",
+    "preserveConstEnums": true,
+    "removeComments": true,
+    "target": "ES5",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true
+  },
+  "exclude": [
+    "public"
+  ]
+}
