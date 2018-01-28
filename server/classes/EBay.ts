@@ -55,7 +55,7 @@ interface ISite {
     ID: string;
 }
 
-interface ICategory {
+export interface ICategory {
     name: string;
     ID: string;
 }
@@ -78,6 +78,7 @@ export class EBay {
     XMLNSDefaultAttribute: string = eBayConstantData.XMLReqBody.XMLNSDefaultAttribute;
     commonXMLElements: string = eBayConstantData.XMLReqBody.commonElements;
     detailNames = eBayConstantData.detailNames;
+    returnsAcceptedOptions = eBayConstantData.returnsAcceptedOptions;
 
     constructor(private APIAuthToken: string, private site: ISite = { name: 'US', ID: '0' }) {
         this.commonXMLElements += `
@@ -295,6 +296,12 @@ export class EBay {
     }
 
     private getAddItemXMLReqBody(params: IItem): string {
+        const returnPolicyOptions: string = params.returnsAccepted === this.returnsAcceptedOptions.RETURNS_ACCEPTED ? `
+            <RefundOption>${params.refund}</RefundOption>
+            <ReturnsWithinOption>${params.returnsWithin}</ReturnsWithinOption>
+            <Description>${params.returnPolicyDescription}</Description>
+            <ShippingCostPaidByOption>${params.shippingCostPaidBy}</ShippingCostPaidByOption>
+        ` : '';
         const XMLReqBody: string = `
             <?xml version='1.0' encoding='utf-8'?>
             <AddItemRequest xmlns='urn:ebay:apis:eBLBaseComponents'>
@@ -324,10 +331,7 @@ export class EBay {
                     <Quantity>${params.quantity || 1}</Quantity>
                     <ReturnPolicy>
                         <ReturnsAcceptedOption>${params.returnsAccepted}</ReturnsAcceptedOption>
-                        <RefundOption>${params.refund}</RefundOption>
-                        <ReturnsWithinOption>${params.returnsWithin}</ReturnsWithinOption>
-                        <Description>${params.returnPolicyDescription}</Description>
-                        <ShippingCostPaidByOption>${params.shippingCostPaidBy}</ShippingCostPaidByOption>
+                        ${returnPolicyOptions}
                     </ReturnPolicy>
                     <ShippingDetails>
                         <ShippingType>${params.shippingType}</ShippingType>
