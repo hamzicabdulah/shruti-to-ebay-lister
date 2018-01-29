@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import { EBay } from '../../classes/EBay';
 
-export const getCountries = (req: Request, res: Response) => {
+export const getSites = (req: Request, res: Response) => {
     const { APIAuthToken } = req.body;
     const eBay = new EBay(APIAuthToken);
-    eBay.getCountries()
-        .then(countries => res.send(countries))
+    eBay.getSites()
+        .then(sites => res.send(sites))
         .catch(err => res.send({ errors: err }));
 }
