@@ -4,6 +4,7 @@ import { getSuggestedCategories } from './routes/getSuggestedCategories';
 import { getCountries } from './routes/getCountries';
 import { getCurrencies } from './routes/getCurrencies';
 import { getSites } from './routes/getSites';
+import { getDomesticShippingServices } from './routes/getDomesticShippingServices';
 
 export function api(app: Application) {
     app.post('/api/add-item', addItem);
@@ -11,4 +12,5 @@ export function api(app: Application) {
     app.post('/api/countries', getCountries);
     app.post('/api/currencies', getCurrencies);
     app.post('/api/sites', getSites);
+    app.post('/api/shipping-services', getDomesticShippingServices);
 }

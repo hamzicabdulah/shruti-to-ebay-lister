@@ -2,15 +2,20 @@ import * as React from 'react';
 import { StatelessComponent } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { Routes } from './Routes';
-import { Header } from './header/Header';
+import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import getMuiTheme from 'material-ui/styles/getMuiTheme';
+import AppBar from 'material-ui/AppBar';
 
 export const App: StatelessComponent = () => {
   return (
     <BrowserRouter>
-      <div>
-        <Header />
-        <Routes />
-      </div>
+      <MuiThemeProvider muiTheme={getMuiTheme(darkBaseTheme)}>
+        <div>
+          <AppBar title='eBay Lister' />
+          <Routes />
+        </div>
+      </MuiThemeProvider>
     </BrowserRouter>
   );
 }

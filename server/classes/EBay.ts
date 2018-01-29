@@ -5,66 +5,8 @@ import { parseString as convertToJS } from 'xml2js';
 dotenv.config({
     path: __dirname + '/../../.env'
 });
-const eBayConstantData = require('../eBayConstantData');
-
-export interface IItem {
-    title: string;
-    description: string;
-    categoryID: string;
-    startPrice: number;
-    country: string;
-    currency: string;
-    dispatchTimeMax: number;
-    listingDuration: string;
-    listingType: string;
-    paymentMethods: string[];
-    paypalEmail: string;
-    pictureURLs: string[];
-    postalCode: string;
-    quantity?: number;
-    returnsAccepted: string;
-    refund: string;
-    returnPolicyDescription: string;
-    returnsWithin: string;
-    shippingCostPaidBy: string;
-    shippingType: string;
-    shippingServicePriority: number;
-    shippingService: string;
-    shippingServiceCost: number;
-}
-
-interface IItemTotalFee {
-    currency: string;
-    value: number;
-}
-
-export interface IAddedItem {
-    totalFee: IItemTotalFee;
-    itemID: string;
-    startTime: Date;
-    endTime: Date;
-}
-
-interface ICountry {
-    code: string;
-    name: string;
-}
-
-interface ISite {
-    name: string;
-    ID: string;
-}
-
-export interface ICategory {
-    name: string;
-    ID: string;
-}
-
-interface IShippingServiceDetails {
-    name: string;
-    types: string[];
-    isInternational: boolean;
-}
+import { eBayConstantData } from '../../eBayConstantData';
+import { ISite, ICountry, IShippingServiceDetails, ICategory, IAddedItem, IItem, IItemTotalFee } from '../../interfaces';
 
 export class EBay {
     APIUrl: string = 'https://api.ebay.com/ws/api.dll';
@@ -166,8 +108,8 @@ export class EBay {
                     const { SiteDetails } = GeteBayDetailsResponse;
                     const sites: ISite[] = SiteDetails.map(site => {
                         return {
-                            countryCode: site.Site[0],
-                            siteID: site.SiteID[0]
+                            name: site.Site[0],
+                            ID: site.SiteID[0]
                         };
                     });
                     resolve(sites);
