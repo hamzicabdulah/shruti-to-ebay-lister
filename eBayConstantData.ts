@@ -3,8 +3,13 @@ export const eBayConstantData = {
         GET_CATEGORIES: 'GetCategories',
         ADD_ITEM: 'AddItem',
         GET_SESSION_ID: 'GetSessionID',
-        GET_EBAY_DETAILS: 'GeteBayDetails'
+        GET_EBAY_DETAILS: 'GeteBayDetails',
+        GET_CATEGORY_FEATURES: 'GetCategoryFeatures'
     },
+    featureIDs: {
+        PAYMENT_METHODS: 'PaymentMethods'
+    },
+    listingDurations: ['Days_3', 'Days_5', 'Days_7', 'Days_10'],
     listingTypes: {
         AD_TYPE: 'AdType',
         CHINESE: 'Chinese',
@@ -57,7 +62,8 @@ export const eBayConstantData = {
         COUNTRY_DETAILS: 'CountryDetails',
         SITE_DETAILS: 'SiteDetails',
         CURRENCY_DETAILS: 'CurrencyDetails',
-        SHIPPING_SERVICE_DETAILS: 'ShippingServiceDetails'
+        SHIPPING_SERVICE_DETAILS: 'ShippingServiceDetails',
+        RETURN_POLICY_DETAILS: 'ReturnPolicyDetails'
     },
     returnsAcceptedOptions: {
         RETURNS_ACCEPTED: 'ReturnsAccepted',

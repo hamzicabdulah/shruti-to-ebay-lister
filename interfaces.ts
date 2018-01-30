@@ -56,3 +56,13 @@ export interface IShippingServiceDetails {
     types: string[];
     isInternational: boolean;
 }
+
+export interface IReturnPolicyDetail {
+    name: string;
+    description: string;
+}
+
+export interface IReturnPolicy {
+    refundOptions: IReturnPolicyDetail[];
+    returnsWithinOptions: IReturnPolicyDetail[];
+}

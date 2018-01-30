@@ -6,7 +6,7 @@ dotenv.config({
     path: __dirname + '/../../.env'
 });
 import { eBayConstantData } from '../../eBayConstantData';
-import { ISite, ICountry, IShippingServiceDetails, ICategory, IAddedItem, IItem, IItemTotalFee } from '../../interfaces';
+import { ISite, ICountry, IShippingServiceDetails, ICategory, IAddedItem, IItem, IItemTotalFee, IReturnPolicy } from '../../interfaces';
 
 export class EBay {
     APIUrl: string = 'https://api.ebay.com/ws/api.dll';
@@ -21,6 +21,7 @@ export class EBay {
     commonXMLElements: string = eBayConstantData.XMLReqBody.commonElements;
     detailNames = eBayConstantData.detailNames;
     returnsAcceptedOptions = eBayConstantData.returnsAcceptedOptions;
+    featureIDs = eBayConstantData.featureIDs;
 
     constructor(private APIAuthToken: string, private site: ISite = { name: 'US', ID: '0' }) {
         this.commonXMLElements += `
@@ -312,7 +313,7 @@ export class EBay {
         });
     }
 
-    private getSessionIDXMLReqBody() {
+    private getSessionIDXMLReqBody(): string {
         const XMLReqBody: string = `
             ${this.XMLDefaultRoot}
             <GetSessionIDRequest xmlns="${this.XMLNSDefaultAttribute}">
@@ -321,5 +322,72 @@ export class EBay {
             </GetSessionIDRequest>
         `;
         return XMLReqBody;
+    }
+
+    getPaymentMethods(categoryID: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.getCategoryFeatures(categoryID, this.featureIDs.PAYMENT_METHODS)
+                .then(GetCategoryFeaturesResponse => {
+                    const { PaymentMethod } = GetCategoryFeaturesResponse.SiteDefaults[0];
+                    resolve(PaymentMethod);
+                })
+                .catch(err => reject(err));
+        });
+    }
+
+    getCategoryFeatures(categoryID: string, featureID: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const XMLReqBody: string = this.getCategoryFeaturesXMLReqBody(categoryID, featureID);
+            const callName: string = this.APICallNames.GET_CATEGORY_FEATURES;
+            this.HTTPPostRequestToEBayAPI(callName, XMLReqBody)
+                .then(JSONResBody => {
+                    const { GetCategoryFeaturesResponse } = JSONResBody;
+                    const { Errors } = GetCategoryFeaturesResponse;
+                    if (Errors && Errors.length) {
+                        const errors: string[] = Errors.map(error => error.LongMessage[0]);
+                        return reject(errors);
+                    }
+                    resolve(GetCategoryFeaturesResponse);
+                })
+                .catch(err => reject(err));
+        });
+    }
+
+    private getCategoryFeaturesXMLReqBody(categoryID: string, featureID: string): string {
+        const XMLReqBody: string = `
+            ${this.XMLDefaultRoot}
+            <GetCategoryFeaturesRequest xmlns="${this.XMLNSDefaultAttribute}">
+                ${this.commonXMLElements}
+                <CategoryID>${categoryID}</CategoryID>
+                <DetailLevel>ReturnAll</DetailLevel>
+                <FeatureID>${featureID}</FeatureID>
+            </GetCategoryFeaturesRequest>
+        `;
+        return XMLReqBody;
+    }
+
+    getReturnPolicyDetails(): Promise<IReturnPolicy> {
+        return new Promise((resolve, reject) => {
+            this.getEBayDetails(this.detailNames.RETURN_POLICY_DETAILS)
+                .then(GeteBayDetailsResponse => {
+                    const { ReturnPolicyDetails } = GeteBayDetailsResponse;
+                    const { Refund, ReturnsWithin } = ReturnPolicyDetails[0];
+                    const returnPolicy: IReturnPolicy = {} as any;
+                    returnPolicy.refundOptions = Refund.map(refund => {
+                        return {
+                            name: refund.RefundOption[0],
+                            description: refund.Description[0]
+                        };
+                    })
+                    returnPolicy.returnsWithinOptions = ReturnsWithin.map(option => {
+                        return {
+                            name: option.ReturnsWithinOption[0],
+                            description: option.Description[0]
+                        };
+                    });
+                    resolve(returnPolicy);
+                })
+                .catch(err => reject(err));
+        });
     }
 }

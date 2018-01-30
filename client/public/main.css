@@ -9,10 +9,10 @@ body {
     padding: 1em 2em 2em;
 }
 .form {
-    width: 50%;
+    width: 100%;
     margin: 0 auto;
 }
-.textField, .selectField, .checkboxDiv, .toggleDiv {
+.textField, .selectField, .checkboxDiv, .toggleDiv, .picturesDiv {
     width: 100% !important;
 }
 .materialParagraph {
@@ -36,4 +36,27 @@ body {
 }
 .chip {
     margin: 0 .5em .5em 0 !important;
+}
+.picturesDiv {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.picture {
+    width: 45% !important;
+    height: 10em;
+    margin: 1em 2% 0;
+}
+@media screen and (min-width: 750px) {
+    .form {
+        width: 70%;
+    }
+}
+@media screen and (min-width: 1000px) {
+    .form {
+        width: 50%;
+    }
+    .picture {
+        width: 28% !important;
+    }
 }
