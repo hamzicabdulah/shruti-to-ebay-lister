@@ -15,7 +15,7 @@ export class EBay {
     APIAppName: string = process.env.EBAY_APP_NAME;
     APIDevName: string = process.env.EBAY_DEV_NAME;
     APICertName: string = process.env.EBAY_CERT_NAME;
-    APIRuName: string = process.env.EBAY_RU_NAME;
+    APIRuName: string = eBayConstantData.ruName;
     XMLDefaultRoot: string = eBayConstantData.XMLReqBody.defaultRoot;
     XMLNSDefaultAttribute: string = eBayConstantData.XMLReqBody.XMLNSDefaultAttribute;
     commonXMLElements: string = eBayConstantData.XMLReqBody.commonElements;
@@ -307,7 +307,7 @@ export class EBay {
                         const errors: string[] = Errors.map(error => error.LongMessage[0]);
                         return reject(errors);
                     }
-                    resolve({ SessionID });
+                    resolve(SessionID[0]);
                 })
                 .catch(err => reject(err));
         });

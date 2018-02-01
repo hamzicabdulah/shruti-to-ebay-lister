@@ -1,4 +1,5 @@
 export const eBayConstantData = {
+    ruName: 'Abdulah_Hamzic-AbdulahH-autoli-fbiefal',
     APICallNames: {
         GET_CATEGORIES: 'GetCategories',
         ADD_ITEM: 'AddItem',

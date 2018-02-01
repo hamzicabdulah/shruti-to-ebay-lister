@@ -71,7 +71,7 @@ export class HomePage extends Component<any, IHomePageState> {
             listingDurations: eBayConstantData.listingDurations,
             returnsWithinOptions: [],
             paymentMethods: [],
-            domesticShippingServices: [],
+            shippingServicesObjects: [],
             form: {
                 siteID: eBayConstantData.sites[0].ID,
                 title: '',
@@ -153,8 +153,8 @@ export class HomePage extends Component<any, IHomePageState> {
                         name='currentKeyword'
                         value={this.state.form.currentKeyword}
                         className='textField'
-                        floatingLabelText='Category Keywords'
-                        hintText='Press Enter to add keyword (Only used to update categories, not included in item listing)'
+                        floatingLabelText='Category Keywords (Only used to load categories, not included in item listing)'
+                        hintText='Press Enter to add keyword'
                         onChange={this.handleInputChange}
                         onKeyPress={this.addKeyword}
                         disabled={!this.state.categories}

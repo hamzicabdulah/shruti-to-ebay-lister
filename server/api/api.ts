@@ -7,6 +7,7 @@ import { getSites } from './routes/getSites';
 import { getDomesticShippingServices } from './routes/getDomesticShippingServices';
 import { getPaymentMethods } from './routes/getPaymentMethods';
 import { getReturnPolicyDetails } from './routes/getReturnPolicyDetails';
+import { getSessionID } from './routes/getSessionID';
 
 export function api(app: Application) {
     app.post('/api/add-item', addItem);
@@ -17,4 +18,5 @@ export function api(app: Application) {
     app.post('/api/shipping-services', getDomesticShippingServices);
     app.post('/api/payment-methods', getPaymentMethods);
     app.post('/api/return-policy', getReturnPolicyDetails);
+    app.get('/api/session-id', getSessionID);
 }
