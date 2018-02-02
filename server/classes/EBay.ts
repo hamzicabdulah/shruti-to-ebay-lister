@@ -6,10 +6,10 @@ dotenv.config({
     path: __dirname + '/../../.env'
 });
 import { eBayConstantData } from '../../eBayConstantData';
-import { ISite, ICountry, IShippingServiceDetails, ICategory, IAddedItem, IItem, IItemTotalFee, IReturnPolicy } from '../../interfaces';
+import { ISite, ICountry, IShippingServiceDetails, ICategory, IAddedItem, IItem, IItemTotalFee, IReturnPolicy, IAuthTokenDetails } from '../../interfaces';
 
 export class EBay {
-    APIUrl: string = 'https://api.ebay.com/ws/api.dll';
+    APIUrl: string = eBayConstantData.APIUrl;
     APICompatibility: number = eBayConstantData.APICompatibility;
     APICallNames = eBayConstantData.APICallNames;
     APIAppName: string = process.env.EBAY_APP_NAME;
@@ -389,5 +389,42 @@ export class EBay {
                 })
                 .catch(err => reject(err));
         });
+    }
+
+    getAuthToken(sessionID: string): Promise<IAuthTokenDetails> {
+        return new Promise((resolve, reject) => {
+            const XMLReqBody: string = this.getFetchTokenXMLReqBody(sessionID);
+            const callName: string = this.APICallNames.FETCH_TOKEN;
+            const additionalReqHeaders = {
+                'X-EBAY-API-APP-NAME': this.APIAppName,
+                'X-EBAY-API-DEV-NAME': this.APIDevName,
+                'X-EBAY-API-CERT-NAME': this.APICertName
+            };
+            this.HTTPPostRequestToEBayAPI(callName, XMLReqBody, additionalReqHeaders)
+                .then(JSONResBody => {
+                    const { Errors, eBayAuthToken, HardExpirationTime } = JSONResBody.FetchTokenResponse;
+                    if (Errors && Errors.length) {
+                        const errors: string[] = Errors.map(error => error.LongMessage[0]);
+                        return reject(errors);
+                    }
+                    const authToken: IAuthTokenDetails = {
+                        token: eBayAuthToken[0],
+                        expirationTime: HardExpirationTime[0]
+                    }
+                    resolve(authToken);
+                })
+                .catch(err => reject(err));
+        });
+    }
+
+    getFetchTokenXMLReqBody(sessionID: string): string {
+        const XMLReqBody: string = `
+            ${this.XMLDefaultRoot}
+            <FetchTokenRequest xmlns="${this.XMLNSDefaultAttribute}">
+                ${this.commonXMLElements}
+                <SessionID>${sessionID}</SessionID>
+            </FetchTokenRequest>
+        `;
+        return XMLReqBody;
     }
 }

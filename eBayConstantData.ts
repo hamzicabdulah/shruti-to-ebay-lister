@@ -1,11 +1,14 @@
 export const eBayConstantData = {
+    APIUrl: 'https://api.ebay.com/ws/api.dll',
+    signInUrl: 'https://signin.ebay.com/ws/eBayISAPI.dll?SignIn&',
     ruName: 'Abdulah_Hamzic-AbdulahH-autoli-fbiefal',
     APICallNames: {
         GET_CATEGORIES: 'GetCategories',
         ADD_ITEM: 'AddItem',
         GET_SESSION_ID: 'GetSessionID',
         GET_EBAY_DETAILS: 'GeteBayDetails',
-        GET_CATEGORY_FEATURES: 'GetCategoryFeatures'
+        GET_CATEGORY_FEATURES: 'GetCategoryFeatures',
+        FETCH_TOKEN: 'FetchToken'
     },
     featureIDs: {
         PAYMENT_METHODS: 'PaymentMethods'

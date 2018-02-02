@@ -47,6 +47,16 @@ body {
     height: 10em;
     margin: 1em 2% 0;
 }
+.accounts, .success {
+    margin: 2em;
+}
+.existingAccountsDiv {
+    margin-bottom: 2em;
+}
+.accountsParagraph, .successParagraph {
+    color: rgba(255, 255, 255, 0.6) !important;
+    margin-bottom: 1em;
+}
 @media screen and (min-width: 750px) {
     .form {
         width: 70%;
@@ -58,5 +68,8 @@ body {
     }
     .picture {
         width: 28% !important;
+    }
+    .accounts, .success {
+        width: 50%;
     }
 }

@@ -66,3 +66,8 @@ export interface IReturnPolicy {
     refundOptions: IReturnPolicyDetail[];
     returnsWithinOptions: IReturnPolicyDetail[];
 }
+
+export interface IAuthTokenDetails {
+    token: string;
+    expirationTime: Date;
+}
