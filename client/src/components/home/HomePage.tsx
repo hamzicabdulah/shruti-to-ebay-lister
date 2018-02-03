@@ -17,7 +17,7 @@ import { eBayConstantData } from '../../../../eBayConstantData';
 import { ISite, ICategory, ICountry, IReturnPolicyDetail, IShippingServiceDetails } from '../../../../interfaces';
 import { IAccount } from "../success/SuccessPage";
 
-interface ISelected {
+interface IForm {
     siteID: string;
     title: string;
     description: string;
@@ -62,7 +62,7 @@ interface IHomePageState {
     snackbarOpen: boolean;
     snackbarMessage: string;
     APIAuthToken: string;
-    form: ISelected;
+    form: IForm;
 }
 
 export class HomePage extends Component<any, IHomePageState> {
@@ -509,7 +509,9 @@ export class HomePage extends Component<any, IHomePageState> {
     }
 
     componentDidMount() {
-        this.reloadEBayData();
+        this.fillInputsWithQueryParams()
+            .then(() => this.reloadEBayData())
+            .catch(err => alert(err));
         this.getTokenFromLocalStorage();
     }
 
@@ -537,12 +539,12 @@ export class HomePage extends Component<any, IHomePageState> {
 
     handleInputChange(event: any, value: any): void {
         const inputName: string = event.currentTarget.name;
-        if (this.isInputNumber(inputName)) value = +value;
+        if (this.inputValueShouldBeNumber(inputName)) value = +value;
         this.stateFormInputValueChange(inputName, value);
     }
 
-    isInputNumber(inputName: string) {
-        switch(inputName) {
+    inputValueShouldBeNumber(inputName: string) {
+        switch (inputName) {
             case 'startPrice':
             case 'dispatchTimeMax':
             case 'quantity':
@@ -566,7 +568,7 @@ export class HomePage extends Component<any, IHomePageState> {
             .then(response => {
                 const { data } = response;
                 this.setState({ categories: data }, () => {
-                    if (data.length) {
+                    if (data.length && this.state.form.categoryID !== this.state.categories[0].ID) {
                         this.setState({
                             form: {
                                 ...this.state.form,
@@ -731,7 +733,48 @@ export class HomePage extends Component<any, IHomePageState> {
         const username: string = localStorage.getItem(selectedAccKey);
         const accountsKey: string = 'eBayListerAccounts';
         const accounts: IAccount[] = JSON.parse(localStorage.getItem(accountsKey)) || [];
+        if (!username || !accounts || !accounts.length) return this.props.history.push('/accounts');
         const selectedAccount: IAccount = accounts.find(account => account.username === username);
         this.setState({ APIAuthToken: selectedAccount.token });
+    }
+
+    fillInputsWithQueryParams(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const paramsStr: string = this.props.location.search.slice(1);
+            const paramPairsArray: string[] = paramsStr.split('&');
+            const params: any = {};
+            paramPairsArray.forEach(paramPair => {
+                const [key, encodedValue] = paramPair.split('=');
+                const value = decodeURIComponent(encodedValue);
+                if (this.inputValueShouldBeArray(key)) {
+                    params[key] = value.split(' ');
+                } else if (this.inputValueShouldBeNumber(key)) {
+                    params[key] = +value;
+                } else {
+                    params[key] = value;
+                }
+            });
+            this.setState({
+                form: {
+                    ...this.state.form,
+                    ...params
+                }
+            }, () => {
+                console.log(params);
+                console.log(this.state.form);
+                resolve();
+            });
+        });
+    }
+
+    inputValueShouldBeArray(inputName: string): boolean {
+        switch (inputName) {
+            case 'keywords':
+            case 'paymentMethods':
+            case 'pictureURLs':
+                return true;
+            default:
+                return false;
+        }
     }
 }

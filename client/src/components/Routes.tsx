@@ -8,11 +8,7 @@ export class Routes extends React.Component {
     render() {
         return (
             <Switch>
-                <Route exact path='/' render={() => (
-                    (localStorage.getItem('selectedAccount') && localStorage.getItem('eBayListerAccounts')) ?
-                        (<HomePage />) :
-                        (<Redirect to='/accounts' />)
-                )} />
+                <Route exact path='/' component={HomePage} />
                 <Route exact path='/accounts' component={AccountsPage} />
                 <Route exact path='/success' component={SuccessPage} />
             </Switch>

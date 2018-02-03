@@ -51,6 +51,7 @@ export class SuccessPage extends Component<any, ISuccessPageState> {
             const params: URLSearchParams = this.getQueryParams();
             const username: string = params.get('username');
             const sessionID: string = params.get('sessionID');
+            if (!username || !sessionID) return this.props.history.push('/accounts');
             this.setState({ username });
             this.getAuthToken(sessionID)
                 .then(token => {
