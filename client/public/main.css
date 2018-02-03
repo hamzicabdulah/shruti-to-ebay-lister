@@ -57,6 +57,9 @@ body {
     color: rgba(255, 255, 255, 0.6) !important;
     margin-bottom: 1em;
 }
+.submitButton {
+    margin: 1em 0;
+}
 @media screen and (min-width: 750px) {
     .form {
         width: 70%;

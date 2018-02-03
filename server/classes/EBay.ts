@@ -245,43 +245,52 @@ export class EBay {
             <Description>${params.returnPolicyDescription}</Description>
             <ShippingCostPaidByOption>${params.shippingCostPaidBy}</ShippingCostPaidByOption>
         ` : '';
+        const paymentMethods: string = params.paymentMethods && !!params.paymentMethods.length ?
+            params.paymentMethods.map(method => '<PaymentMethods>' + method + '</PaymentMethods>').join(' ') :
+            '';
+        const paypalEmail: string = ~params.paymentMethods.indexOf('PayPal') && params.paypalEmail && !!params.paypalEmail.length ?
+            `<PayPalEmailAddress>${params.paypalEmail}</PayPalEmailAddress>` :
+            '';
+        const pictures: string = params.pictureURLs && !!params.pictureURLs ? `
+                <PictureDetails>
+                    <GalleryType>Gallery</GalleryType>
+                    <GalleryURL>${params.pictureURLs[0]}</GalleryURL>
+                    ${params.pictureURLs.map(picture => '<PictureURL>' + picture + '</PictureURL>').join(' ')}
+                </PictureDetails>
+            ` : '';
         const XMLReqBody: string = `
             <?xml version='1.0' encoding='utf-8'?>
             <AddItemRequest xmlns='urn:ebay:apis:eBLBaseComponents'>
                 ${this.commonXMLElements}
                 <Item>
-                    <Title>${params.title}</Title>
-                    <Description>${params.description}</Description>
+                    <Title>${params.title || ''}</Title>
+                    <Description>${params.description || ''}</Description>
                     <PrimaryCategory>
-                        <CategoryID>${params.categoryID}</CategoryID>
+                        <CategoryID>${params.categoryID || ''}</CategoryID>
                     </PrimaryCategory>
-                    <StartPrice>${params.startPrice}</StartPrice>
+                    <StartPrice>${params.startPrice || 0}</StartPrice>
                     <CategoryMappingAllowed>true</CategoryMappingAllowed>
-                    <Country>${params.country}</Country>
-                    <Currency>${params.currency}</Currency>
+                    <Country>${params.country || ''}</Country>
+                    <Currency>${params.currency || ''}</Currency>
                     <ConditionID>1000</ConditionID>
-                    <DispatchTimeMax>${params.dispatchTimeMax}</DispatchTimeMax>
-                    <ListingDuration>${params.listingDuration}</ListingDuration>
+                    <DispatchTimeMax>${params.dispatchTimeMax || 0}</DispatchTimeMax>
+                    <ListingDuration>${params.listingDuration || ''}</ListingDuration>
                     <ListingType>${params.listingType}</ListingType>
-                    ${params.paymentMethods.map(method => '<PaymentMethods>' + method + '</PaymentMethods>').join(' ')}
-                    <PayPalEmailAddress>${params.paypalEmail}</PayPalEmailAddress>
-                    <PictureDetails>
-                        <GalleryType>Gallery</GalleryType>
-                        <GalleryURL>${params.pictureURLs[0]}</GalleryURL>
-                        ${params.pictureURLs.map(picture => '<PictureURL>' + picture + '</PictureURL>').join(' ')}
-                    </PictureDetails>
-                    <PostalCode>${params.postalCode}</PostalCode>
+                    ${paymentMethods}
+                    ${paypalEmail}
+                    ${pictures}
+                    <PostalCode>${params.postalCode || ''}</PostalCode>
                     <Quantity>${params.quantity || 1}</Quantity>
                     <ReturnPolicy>
-                        <ReturnsAcceptedOption>${params.returnsAccepted}</ReturnsAcceptedOption>
+                        <ReturnsAcceptedOption>${params.returnsAccepted || ''}</ReturnsAcceptedOption>
                         ${returnPolicyOptions}
                     </ReturnPolicy>
                     <ShippingDetails>
-                        <ShippingType>${params.shippingType}</ShippingType>
+                        <ShippingType>${params.shippingType || ''}</ShippingType>
                         <ShippingServiceOptions>
-                            <ShippingServicePriority>${params.shippingServicePriority}</ShippingServicePriority>
-                            <ShippingService>${params.shippingService}</ShippingService>
-                            <ShippingServiceCost>${params.shippingServiceCost}</ShippingServiceCost>
+                            <ShippingServicePriority>${params.shippingServicePriority || 0}</ShippingServicePriority>
+                            <ShippingService>${params.shippingService || ''}</ShippingService>
+                            <ShippingServiceCost>${params.shippingServiceCost || 0}</ShippingServiceCost>
                         </ShippingServiceOptions>
                     </ShippingDetails>
                     <Site>${this.site.name}</Site>

@@ -7,12 +7,15 @@ import Checkbox from 'material-ui/Checkbox';
 import Chip from 'material-ui/Chip';
 import Toggle from 'material-ui/Toggle';
 import LinearProgress from 'material-ui/LinearProgress';
-import axios from 'axios';
-import { eBayConstantData } from '../../../../eBayConstantData';
-import { ISite, ICategory, ICountry, IReturnPolicyDetail, IShippingServiceDetails } from '../../../../interfaces';
+import RaisedButton from 'material-ui/RaisedButton';
+import Snackbar from 'material-ui/Snackbar';
 import { GridList, GridTile } from 'material-ui/GridList';
+import axios from 'axios';
 import IconButton from 'material-ui/IconButton';
 import StarBorder from 'material-ui/svg-icons/toggle/star-border';
+import { eBayConstantData } from '../../../../eBayConstantData';
+import { ISite, ICategory, ICountry, IReturnPolicyDetail, IShippingServiceDetails } from '../../../../interfaces';
+import { IAccount } from "../success/SuccessPage";
 
 interface ISelected {
     siteID: string;
@@ -25,7 +28,7 @@ interface ISelected {
     country: string;
     currency: string;
     dispatchTimeMax: number;
-    listingDuration: number;
+    listingDuration: string;
     listingType: string;
     paymentMethods: string[];
     paypalEmail: string;
@@ -55,6 +58,10 @@ interface IHomePageState {
     refundOptions: IReturnPolicyDetail[];
     returnsWithinOptions: IReturnPolicyDetail[];
     shippingServicesObjects: IShippingServiceDetails[];
+    listItemSubmitLoading: boolean;
+    snackbarOpen: boolean;
+    snackbarMessage: string;
+    APIAuthToken: string;
     form: ISelected;
 }
 
@@ -72,6 +79,10 @@ export class HomePage extends Component<any, IHomePageState> {
             returnsWithinOptions: [],
             paymentMethods: [],
             shippingServicesObjects: [],
+            listItemSubmitLoading: false,
+            snackbarOpen: false,
+            snackbarMessage: '',
+            APIAuthToken: undefined,
             form: {
                 siteID: eBayConstantData.sites[0].ID,
                 title: '',
@@ -83,7 +94,7 @@ export class HomePage extends Component<any, IHomePageState> {
                 country: eBayConstantData.countries[0].code,
                 currency: 'INR',
                 dispatchTimeMax: 1,
-                listingDuration: 14,
+                listingDuration: eBayConstantData.listingDurations[0],
                 listingType: eBayConstantData.listingTypes.FIXED_PRICE_ITEM,
                 paymentMethods: [],
                 paypalEmail: '',
@@ -113,6 +124,8 @@ export class HomePage extends Component<any, IHomePageState> {
         this.getPaymentMethods = this.getPaymentMethods.bind(this);
         this.getReturnPolicy = this.getReturnPolicy.bind(this);
         this.getShippingServices = this.getShippingServices.bind(this);
+        this.submitItemListing = this.submitItemListing.bind(this);
+        this.handleSnackbarClose = this.handleSnackbarClose.bind(this);
     }
 
     render() {
@@ -292,14 +305,17 @@ export class HomePage extends Component<any, IHomePageState> {
                                 <LinearProgress mode="indeterminate" />
                             </div>
                     }
-                    <TextField
-                        name='paypalEmail'
-                        value={this.state.form.paypalEmail}
-                        type='email'
-                        className='textField'
-                        floatingLabelText='PayPal Email Address'
-                        onChange={this.handleInputChange}
-                    />
+                    {
+                        !!~this.state.form.paymentMethods.indexOf('PayPal') &&
+                        <TextField
+                            name='paypalEmail'
+                            value={this.state.form.paypalEmail}
+                            type='email'
+                            className='textField'
+                            floatingLabelText='PayPal Email Address'
+                            onChange={this.handleInputChange}
+                        />
+                    }
                     <TextField
                         name='currentPictureURL'
                         value={this.state.form.currentPictureURL}
@@ -458,17 +474,35 @@ export class HomePage extends Component<any, IHomePageState> {
                             value={this.state.form.shippingType}
                             onChange={this.handleSelectChange.bind(this, 'shippingType')}
                         >
-                            {this.state.shippingServicesObjects.filter(service => {
-                                return service.name === this.state.form.shippingService;
-                            })[0].types.map(type => {
-                                return <MenuItem
-                                    value={type}
-                                    primaryText={type}
-                                    key={type}
-                                />;
-                            })}
+                            {this.state.shippingServicesObjects.find(service => service.name === this.state.form.shippingService)
+                                .types.map(type => {
+                                    return <MenuItem
+                                        value={type}
+                                        primaryText={type}
+                                        key={type}
+                                    />;
+                                })}
                         </SelectField>
                     }
+                    <RaisedButton
+                        className='submitButton'
+                        label='List Item'
+                        primary={true}
+                        onClick={this.submitItemListing}
+                    />
+                    {
+                        this.state.listItemSubmitLoading &&
+                        <div>
+                            <LinearProgress mode='indeterminate' />
+                            <p className='materialParagraph'>Item listing is in progress. Please be patient.</p>
+                        </div>
+                    }
+                    <Snackbar
+                        open={this.state.snackbarOpen}
+                        message={this.state.snackbarMessage}
+                        autoHideDuration={6000}
+                        onRequestClose={this.handleSnackbarClose}
+                    />
                 </div>
             </div>
         );
@@ -476,6 +510,7 @@ export class HomePage extends Component<any, IHomePageState> {
 
     componentDidMount() {
         this.reloadEBayData();
+        this.getTokenFromLocalStorage();
     }
 
     reloadEBayData() {
@@ -501,12 +536,27 @@ export class HomePage extends Component<any, IHomePageState> {
     }
 
     handleInputChange(event: any, value: any): void {
-        this.stateFormInputValueChange(event.currentTarget.name, value);
+        const inputName: string = event.currentTarget.name;
+        if (this.isInputNumber(inputName)) value = +value;
+        this.stateFormInputValueChange(inputName, value);
+    }
+
+    isInputNumber(inputName: string) {
+        switch(inputName) {
+            case 'startPrice':
+            case 'dispatchTimeMax':
+            case 'quantity':
+            case 'shippingServicePriority':
+            case 'shippingServiceCost':
+                return true;
+            default:
+                return false;
+        }
     }
 
     getSuggestedItemCategories(): void {
         this.setState({ categories: undefined });
-        const selectedSite: ISite = this.state.sites.filter(site => site.ID === this.state.form.siteID)[0];
+        const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
         const reqBody = {
             itemKeywords: this.state.form.keywords,
             site: selectedSite,
@@ -556,7 +606,7 @@ export class HomePage extends Component<any, IHomePageState> {
 
     getPaymentMethods(): void {
         this.setState({ paymentMethods: undefined });
-        const selectedSite: ISite = this.state.sites.filter(site => site.ID === this.state.form.siteID)[0];
+        const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
         const reqBody = {
             categoryID: this.state.form.categoryID,
             site: selectedSite,
@@ -603,7 +653,7 @@ export class HomePage extends Component<any, IHomePageState> {
             refundOptions: undefined,
             returnsWithinOptions: undefined
         });
-        const selectedSite: ISite = this.state.sites.filter(site => site.ID === this.state.form.siteID)[0];
+        const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
         const reqBody = {
             site: selectedSite,
             APIAuthToken: `AgAAAA**AQAAAA**aAAAAA**w3xrWg**nY+sHZ2PrBmdj6wVnY+sEZ2PrA2dj6ADk4SjD5iCqA+dj6x9nY+seQ**5B4EAA**AAMAAA**0IwSrCUDIIaJZWsf11ROAxjV4ncqofn/z89Pi3R8AITOhTJWGbF51zP/5wOpUXJn9+Lg/OH5il7X8T2zuuTW137zFGQKmVMrYxKBMijEt5RivHLaiuVRnNAt9jzvczaJD17GjwbBwVrb0s+V1WN7E9CvubugpRQI66XFVnEqUJQAwHt9zhuFUFJoYcCKjC0eRYRiUgM+89iCEicQu/rTm7y7UgR4owFrzRpq9IGzetZeHnhgjwpZn6uyKN6RFXg0QY8cA6Dy2AuzWUW9fG0O3Yrbj0JI/MNf/myN38p7vpKxkMOrhL4v7FGep+zpTuydIFYeoVNS/1ZBTMhm9tNpKlmxan/fA3hJu2EcC1fZYNkPTYFLH+QWJ1NRwzfwEtJQ/lHq02bgtVWHoW7tyZui4yMoDg8f1C7o2t4520iuNtdhffIQyfxmuaEYDdsTZDz9UEfmIZN8+0nD8zgkwd7lc2VsO0j0XyYZ76WU+nYaIVWD1oZ2+OSXASwgsnlcaa6OGFtz/b8FDoUhHUMmLai4PG/NHd65e+nOGEA9zw6XcSsTvVwxSwHKjJusTFrNM85lpnRe718TjcevuWFMMnwNhCdqRO298JSt3bqPATMq24E5AGVz/VSMXqD0GFJJV8f+QaGr5OUq61o+dd/pVuZUh+EO+opMyk9Dp/dStTDSO0VBb6tK0yPBPAasQ7tE0zRMCG2tlkcAAPXN1+d/dQm8cp/wzCiEEjCDUxyL92ke+A+2Hcn8vyg3X85HN1Nijd4b`
@@ -621,7 +671,7 @@ export class HomePage extends Component<any, IHomePageState> {
 
     getShippingServices(): void {
         this.setState({ shippingServicesObjects: undefined });
-        const selectedSite: ISite = this.state.sites.filter(site => site.ID === this.state.form.siteID)[0];
+        const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
         const reqBody = {
             site: selectedSite,
             APIAuthToken: `AgAAAA**AQAAAA**aAAAAA**w3xrWg**nY+sHZ2PrBmdj6wVnY+sEZ2PrA2dj6ADk4SjD5iCqA+dj6x9nY+seQ**5B4EAA**AAMAAA**0IwSrCUDIIaJZWsf11ROAxjV4ncqofn/z89Pi3R8AITOhTJWGbF51zP/5wOpUXJn9+Lg/OH5il7X8T2zuuTW137zFGQKmVMrYxKBMijEt5RivHLaiuVRnNAt9jzvczaJD17GjwbBwVrb0s+V1WN7E9CvubugpRQI66XFVnEqUJQAwHt9zhuFUFJoYcCKjC0eRYRiUgM+89iCEicQu/rTm7y7UgR4owFrzRpq9IGzetZeHnhgjwpZn6uyKN6RFXg0QY8cA6Dy2AuzWUW9fG0O3Yrbj0JI/MNf/myN38p7vpKxkMOrhL4v7FGep+zpTuydIFYeoVNS/1ZBTMhm9tNpKlmxan/fA3hJu2EcC1fZYNkPTYFLH+QWJ1NRwzfwEtJQ/lHq02bgtVWHoW7tyZui4yMoDg8f1C7o2t4520iuNtdhffIQyfxmuaEYDdsTZDz9UEfmIZN8+0nD8zgkwd7lc2VsO0j0XyYZ76WU+nYaIVWD1oZ2+OSXASwgsnlcaa6OGFtz/b8FDoUhHUMmLai4PG/NHd65e+nOGEA9zw6XcSsTvVwxSwHKjJusTFrNM85lpnRe718TjcevuWFMMnwNhCdqRO298JSt3bqPATMq24E5AGVz/VSMXqD0GFJJV8f+QaGr5OUq61o+dd/pVuZUh+EO+opMyk9Dp/dStTDSO0VBb6tK0yPBPAasQ7tE0zRMCG2tlkcAAPXN1+d/dQm8cp/wzCiEEjCDUxyL92ke+A+2Hcn8vyg3X85HN1Nijd4b`
@@ -639,5 +689,49 @@ export class HomePage extends Component<any, IHomePageState> {
                 });
             })
             .catch(err => alert(err));
+    }
+
+    submitItemListing(): void {
+        this.setState({ listItemSubmitLoading: true });
+        const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
+        const reqBody = {
+            ...this.state.form,
+            site: selectedSite,
+            APIAuthToken: this.state.APIAuthToken,
+            returnsAccepted: this.state.form.returnsAccepted ? eBayConstantData.returnsAcceptedOptions.RETURNS_ACCEPTED : eBayConstantData.returnsAcceptedOptions.RETURNS_NOT_ACCEPTED
+        };
+        axios.post('/api/add-item', reqBody)
+            .then(response => {
+                this.setState({ listItemSubmitLoading: false });
+                const { errors } = response.data;
+                if (errors) this.alertError(errors);
+                else (this.snackbarSuccess());
+            })
+            .catch(err => alert(err));
+    }
+
+    alertError(err: string | string[]): void {
+        const errorToDisplay: string = typeof err === 'string' ? err : err.join('\n');
+        alert(errorToDisplay);
+    }
+
+    snackbarSuccess(): void {
+
+    }
+
+    handleSnackbarClose(): void {
+        this.setState({
+            snackbarOpen: false,
+            snackbarMessage: ''
+        });
+    };
+
+    getTokenFromLocalStorage(): void {
+        const selectedAccKey: string = 'selectedAccount';
+        const username: string = localStorage.getItem(selectedAccKey);
+        const accountsKey: string = 'eBayListerAccounts';
+        const accounts: IAccount[] = JSON.parse(localStorage.getItem(accountsKey)) || [];
+        const selectedAccount: IAccount = accounts.find(account => account.username === username);
+        this.setState({ APIAuthToken: selectedAccount.token });
     }
 }
