@@ -1,0 +1,10 @@
+html, body {
+    background: rgb(48, 48, 48);
+    margin: 0;
+}
+body {
+    padding: 1em;
+}
+.waves-effect {
+    width: 15em;
+}

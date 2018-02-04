@@ -11,7 +11,9 @@ export const eBayConstantData = {
         FETCH_TOKEN: 'FetchToken'
     },
     featureIDs: {
-        PAYMENT_METHODS: 'PaymentMethods'
+        PAYMENT_METHODS: 'PaymentMethods',
+        CONDITION_ENABLED: 'ConditionEnabled',
+        CONDITION_VALUES: 'ConditionValues'
     },
     listingDurations: ['Days_3', 'Days_5', 'Days_7', 'Days_10'],
     listingTypes: {

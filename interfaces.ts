@@ -22,6 +22,9 @@ export interface IItem {
     shippingServicePriority: number;
     shippingService: string;
     shippingServiceCost: number;
+    brand: string;
+    UPC: string;
+    itemSpecifics: any;
 }
 
 export interface IItemTotalFee {

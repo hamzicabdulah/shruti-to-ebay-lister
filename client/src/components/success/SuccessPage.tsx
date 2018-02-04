@@ -43,7 +43,12 @@ export class SuccessPage extends Component<any, ISuccessPageState> {
     componentDidMount() {
         this.getAccountCredentials()
             .then(account => this.saveCredentialsToLocalStorage(account))
-            .catch(err => alert(err));
+            .catch(err => this.alertError(err));
+    }
+
+    alertError(err: string | string[]): void {
+        const errorToDisplay: string = typeof err === 'string' ? err : err.join('\n');
+        alert(errorToDisplay);
     }
 
     getAccountCredentials(): Promise<IAccount> {
@@ -61,7 +66,7 @@ export class SuccessPage extends Component<any, ISuccessPageState> {
                 .catch(err => reject(err));
         });
     }
-    
+
     getQueryParams(): URLSearchParams {
         const paramsStr: string = this.props.location.search;
         const params = new URLSearchParams(paramsStr);

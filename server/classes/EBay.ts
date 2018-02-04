@@ -219,20 +219,21 @@ export class EBay {
             this.HTTPPostRequestToEBayAPI(callName, XMLReqBody)
                 .then(JSONResBody => {
                     const { Errors, ItemID, StartTime, EndTime, Fees } = JSONResBody.AddItemResponse;
-                    if (Errors && Errors.length) {
-                        const errors: string[] = Errors.map(error => error.LongMessage[0]);
-                        return reject(errors);
+                    if (Fees && Fees.length) {
+                        const totalFee: IItemTotalFee = {
+                            currency: Fees.Fee[0].Fee[0].$.currencyID,
+                            value: Fees.Fee.reduce((acc, fee) => acc + +fee[0].Fee[0]._, 0)
+                        };
+                        return resolve({
+                            totalFee,
+                            itemID: ItemID,
+                            startTime: StartTime,
+                            endTime: EndTime
+                        });
                     }
-                    const totalFee: IItemTotalFee = {
-                        currency: Fees[0].Fee[0].$.currencyID,
-                        value: Fees[0].Fee.reduce((acc, fee) => acc + fee.Fee, 0)
-                    };
-                    resolve({
-                        totalFee,
-                        itemID: ItemID,
-                        startTime: StartTime,
-                        endTime: EndTime
-                    });
+                    const errors: string[] = Errors.filter(error => error.SeverityCode[0] === 'Error')
+                        .map(error => error.LongMessage[0]);
+                    reject(errors);
                 })
                 .catch(err => reject(err));
         });
@@ -251,13 +252,28 @@ export class EBay {
         const paypalEmail: string = ~params.paymentMethods.indexOf('PayPal') && params.paypalEmail && !!params.paypalEmail.length ?
             `<PayPalEmailAddress>${params.paypalEmail}</PayPalEmailAddress>` :
             '';
-        const pictures: string = params.pictureURLs && !!params.pictureURLs ? `
+        const pictures: string = params.pictureURLs && !!params.pictureURLs.length ? `
                 <PictureDetails>
                     <GalleryType>Gallery</GalleryType>
                     <GalleryURL>${params.pictureURLs[0]}</GalleryURL>
                     ${params.pictureURLs.map(picture => '<PictureURL>' + picture + '</PictureURL>').join(' ')}
                 </PictureDetails>
             ` : '';
+        const UPC: string = params.UPC && !!params.UPC.length ? `
+            <NameValueList>
+                <Name>UPC</Name>
+                <Value>${params.UPC}</Value>
+            </NameValueList>
+        ` :
+            '';
+        const additionalItemSpecifics: any = params.itemSpecifics && !!Object.keys(params.itemSpecifics).length ?
+            Object.keys(params.itemSpecifics).map(key => `
+            <NameValueList>
+                <Name>${key}</Name>
+                <Value>${params.itemSpecifics[key] || ''}</Value>
+            </NameValueList>
+        `) :
+            '';
         const XMLReqBody: string = `
             <?xml version='1.0' encoding='utf-8'?>
             <AddItemRequest xmlns='urn:ebay:apis:eBLBaseComponents'>
@@ -270,6 +286,7 @@ export class EBay {
                     </PrimaryCategory>
                     <StartPrice>${params.startPrice || 0}</StartPrice>
                     <CategoryMappingAllowed>true</CategoryMappingAllowed>
+                    <CategoryBasedAttributesPrefill>true</CategoryBasedAttributesPrefill>
                     <Country>${params.country || ''}</Country>
                     <Currency>${params.currency || ''}</Currency>
                     <ConditionID>1000</ConditionID>
@@ -294,6 +311,14 @@ export class EBay {
                         </ShippingServiceOptions>
                     </ShippingDetails>
                     <Site>${this.site.name}</Site>
+                     <ItemSpecifics>
+                        <NameValueList>
+                            <Name>Brand</Name>
+                            <Value>${params.brand || 'Unbranded'}</Value>
+                        </NameValueList>
+                        ${UPC}
+                        ${additionalItemSpecifics}
+                    </ItemSpecifics>
                 </Item>
             </AddItemRequest>
         `;
@@ -335,7 +360,7 @@ export class EBay {
 
     getPaymentMethods(categoryID: string): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.getCategoryFeatures(categoryID, this.featureIDs.PAYMENT_METHODS)
+            this.getCategoryFeatures(categoryID, [this.featureIDs.PAYMENT_METHODS])
                 .then(GetCategoryFeaturesResponse => {
                     const { PaymentMethod } = GetCategoryFeaturesResponse.SiteDefaults[0];
                     resolve(PaymentMethod);
@@ -344,9 +369,9 @@ export class EBay {
         });
     }
 
-    getCategoryFeatures(categoryID: string, featureID: string): Promise<any> {
+    getCategoryFeatures(categoryID: string, featureIDs: string[]): Promise<any> {
         return new Promise((resolve, reject) => {
-            const XMLReqBody: string = this.getCategoryFeaturesXMLReqBody(categoryID, featureID);
+            const XMLReqBody: string = this.getCategoryFeaturesXMLReqBody(categoryID, featureIDs);
             const callName: string = this.APICallNames.GET_CATEGORY_FEATURES;
             this.HTTPPostRequestToEBayAPI(callName, XMLReqBody)
                 .then(JSONResBody => {
@@ -362,17 +387,28 @@ export class EBay {
         });
     }
 
-    private getCategoryFeaturesXMLReqBody(categoryID: string, featureID: string): string {
+    private getCategoryFeaturesXMLReqBody(categoryID: string, featureIDs: string[]): string {
         const XMLReqBody: string = `
             ${this.XMLDefaultRoot}
             <GetCategoryFeaturesRequest xmlns="${this.XMLNSDefaultAttribute}">
                 ${this.commonXMLElements}
                 <CategoryID>${categoryID}</CategoryID>
                 <DetailLevel>ReturnAll</DetailLevel>
-                <FeatureID>${featureID}</FeatureID>
+                ${featureIDs.map(ID => '<FeatureID>' + ID + '</FeatureID>')}
             </GetCategoryFeaturesRequest>
         `;
         return XMLReqBody;
+    }
+
+    getConditionIDs(categoryID: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.getCategoryFeatures(categoryID, [this.featureIDs.CONDITION_ENABLED, this.featureIDs.CONDITION_VALUES])
+                .then(GetCategoryFeaturesResponse => {
+                    console.log(GetCategoryFeaturesResponse.SiteDefaults[0]);
+                    resolve(GetCategoryFeaturesResponse.SiteDefaults[0]);
+                })
+                .catch(err => reject(err));
+        });
     }
 
     getReturnPolicyDetails(): Promise<IReturnPolicy> {

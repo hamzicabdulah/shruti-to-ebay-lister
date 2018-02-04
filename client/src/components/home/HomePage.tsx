@@ -45,6 +45,11 @@ interface IForm {
     shippingType: string;
     shippingServicePriority: number;
     shippingServiceCost: number;
+    brand: string;
+    UPC: string;
+    currentSpecific: string;
+    itemSpecifics: string[];
+    [key: string]: any;
 }
 
 interface IHomePageState {
@@ -110,7 +115,11 @@ export class HomePage extends Component<any, IHomePageState> {
                 shippingServicePriority: 1,
                 shippingServiceCost: 0,
                 shippingService: '',
-                shippingType: ''
+                shippingType: '',
+                brand: '',
+                UPC: '',
+                currentSpecific: '',
+                itemSpecifics: []
             }
         };
         this.handleSelectChange = this.handleSelectChange.bind(this);
@@ -121,11 +130,14 @@ export class HomePage extends Component<any, IHomePageState> {
         this.removeKeyword = this.removeKeyword.bind(this);
         this.addPictureURL = this.addPictureURL.bind(this);
         this.removePictureURL = this.removePictureURL.bind(this);
+        this.addSpecific = this.addSpecific.bind(this);
+        this.removeSpecific = this.removeSpecific.bind(this);
         this.getPaymentMethods = this.getPaymentMethods.bind(this);
         this.getReturnPolicy = this.getReturnPolicy.bind(this);
         this.getShippingServices = this.getShippingServices.bind(this);
         this.submitItemListing = this.submitItemListing.bind(this);
         this.handleSnackbarClose = this.handleSnackbarClose.bind(this);
+        this.shouldDisableButton = this.shouldDisableButton.bind(this);
     }
 
     render() {
@@ -160,6 +172,20 @@ export class HomePage extends Component<any, IHomePageState> {
                         className='textField'
                         floatingLabelText='Description'
                         multiLine={true}
+                        onChange={this.handleInputChange}
+                    />
+                    <TextField
+                        name='description'
+                        value={this.state.form.brand}
+                        className='textField'
+                        floatingLabelText='Brand'
+                        onChange={this.handleInputChange}
+                    />
+                    <TextField
+                        name='description'
+                        value={this.state.form.UPC}
+                        className='textField'
+                        floatingLabelText='UPC'
                         onChange={this.handleInputChange}
                     />
                     <TextField
@@ -211,14 +237,6 @@ export class HomePage extends Component<any, IHomePageState> {
                                 <LinearProgress mode="indeterminate" />
                             </div>
                     }
-                    <TextField
-                        name='startPrice'
-                        value={this.state.form.startPrice}
-                        type='number'
-                        className='textField'
-                        floatingLabelText='Price'
-                        onChange={this.handleInputChange}
-                    />
                     <SelectField
                         className='selectField'
                         floatingLabelText='Country'
@@ -233,6 +251,21 @@ export class HomePage extends Component<any, IHomePageState> {
                             />;
                         })}
                     </SelectField>
+                    <TextField
+                        name='postalCode'
+                        value={this.state.form.postalCode}
+                        className='textField'
+                        floatingLabelText='Postal Code'
+                        onChange={this.handleInputChange}
+                    />
+                    <TextField
+                        name='startPrice'
+                        value={this.state.form.startPrice}
+                        type='number'
+                        className='textField'
+                        floatingLabelText='Price'
+                        onChange={this.handleInputChange}
+                    />
                     <SelectField
                         className='selectField'
                         floatingLabelText='Currency'
@@ -341,13 +374,6 @@ export class HomePage extends Component<any, IHomePageState> {
                             <img className='picture' key={index} src={pictureURL} />
                         ))}
                     </div>
-                    <TextField
-                        name='postalCode'
-                        value={this.state.form.postalCode}
-                        className='textField'
-                        floatingLabelText='Postal Code'
-                        onChange={this.handleInputChange}
-                    />
                     <TextField
                         name='quantity'
                         value={this.state.form.quantity}
@@ -484,11 +510,32 @@ export class HomePage extends Component<any, IHomePageState> {
                                 })}
                         </SelectField>
                     }
+                    <TextField
+                        name='currentSpecific'
+                        value={this.state.form.currentSpecific}
+                        className='textField'
+                        floatingLabelText='Item specifics (Use this field if asked to include specific fields for an item)'
+                        hintText='Press Enter to add. Separate name and value with colon and whitespace. Eg: Colour: red'
+                        onChange={this.handleInputChange}
+                        onKeyPress={this.addSpecific}
+                    />
+                    <div className='chips'>
+                        {this.state.form.itemSpecifics.map((specific, index) => {
+                            return <Chip
+                                className='chip'
+                                onRequestDelete={() => this.removeSpecific(index)}
+                                key={index}
+                            >
+                                {specific}
+                            </Chip>;
+                        })}
+                    </div>
                     <RaisedButton
                         className='submitButton'
                         label='List Item'
                         primary={true}
                         onClick={this.submitItemListing}
+                        disabled={this.shouldDisableButton()}
                     />
                     {
                         this.state.listItemSubmitLoading &&
@@ -650,6 +697,26 @@ export class HomePage extends Component<any, IHomePageState> {
         this.stateFormInputValueChange('pictureURLs', pictureURLs);
     }
 
+    addSpecific(event: KeyboardEvent<{}>): void {
+        if (event.key === 'Enter') {
+            const itemSpecifics: string[] = [...this.state.form.itemSpecifics, this.state.form.currentSpecific];
+            this.setState({
+                form: {
+                    ...this.state.form,
+                    itemSpecifics,
+                    currentSpecific: ''
+                }
+            });
+            event.preventDefault();
+        }
+    }
+
+    removeSpecific(index: number): void {
+        const itemSpecifics: string[] = [...this.state.form.itemSpecifics];
+        const removedSpecific: string[] = itemSpecifics.splice(index, 1);
+        this.stateFormInputValueChange('itemSpecifics', itemSpecifics);
+    }
+
     getReturnPolicy(): void {
         this.setState({
             refundOptions: undefined,
@@ -696,10 +763,16 @@ export class HomePage extends Component<any, IHomePageState> {
     submitItemListing(): void {
         this.setState({ listItemSubmitLoading: true });
         const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
+        const itemSpecifics: any = {};
+        this.state.form.itemSpecifics.forEach(specific => {
+            const [key, value] = specific.split(': ');
+            itemSpecifics[key] = value;
+        });
         const reqBody = {
             ...this.state.form,
             site: selectedSite,
             APIAuthToken: this.state.APIAuthToken,
+            itemSpecifics,
             returnsAccepted: this.state.form.returnsAccepted ? eBayConstantData.returnsAcceptedOptions.RETURNS_ACCEPTED : eBayConstantData.returnsAcceptedOptions.RETURNS_NOT_ACCEPTED
         };
         axios.post('/api/add-item', reqBody)
@@ -759,11 +832,7 @@ export class HomePage extends Component<any, IHomePageState> {
                     ...this.state.form,
                     ...params
                 }
-            }, () => {
-                console.log(params);
-                console.log(this.state.form);
-                resolve();
-            });
+            }, () => resolve());
         });
     }
 
@@ -776,5 +845,22 @@ export class HomePage extends Component<any, IHomePageState> {
             default:
                 return false;
         }
+    }
+
+    shouldDisableButton(): boolean {
+        const shouldNotBeChecked: string[] = ['description', 'keywords', 'currentKeyword', 'paypalEmail',
+            'currentPictureURL', 'quantity', 'returnsAccepted', 'refund', 'returnPolicyDescription',
+            'returnsWithin', 'shippingCostPaidBy', 'shippingServicePriority', 'shippingServiceCost',
+            'brand', 'UPC', 'currentSpecific', 'itemSpecifics'];
+        const params = Object.keys(this.state.form);
+        for (let i = 0; i < params.length; i++) {
+            const param: string = params[i];
+            const paramValue: any = this.state.form[param];
+            const requiredFieldIsEmpty: boolean = (this.inputValueShouldBeNumber(param) && isNaN(this.state.form[param])) ||
+                (!this.inputValueShouldBeNumber(param) && (!this.state.form[param] || !this.state.form[param].length));
+            if (~shouldNotBeChecked.indexOf(param)) continue;
+            else if (requiredFieldIsEmpty) return true;
+        }
+        return false;
     }
 }

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom';
 import { HomePage } from './home/HomePage';
 import { SuccessPage } from './success/SuccessPage';
-import { AccountsPage } from './accounts/accounts';
+import { AccountsPage } from './accounts/AccountsPage';
 
 export class Routes extends React.Component {
     render() {
