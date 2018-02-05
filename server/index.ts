@@ -4,7 +4,7 @@ import { resolve } from 'path';
 import * as dotenv from 'dotenv';
 import * as bodyParser from 'body-parser';
 import { api } from './api/api';
-import { EBay } from "./classes/EBay";
+import { EBay } from './classes/EBay';
 
 export const app: Application = express();
 dotenv.config({

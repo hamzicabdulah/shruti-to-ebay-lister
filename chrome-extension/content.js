@@ -38,7 +38,7 @@ function listItem() {
         const currency = 'USD';
         const startPrice = INRToUSD(INR, USD, priceFromPage).toFixed(2);
         const query = `siteID=${siteID}&title=${title}&description=${description}&country=${country}&currency=${currency}&startPrice=${startPrice}&keywords=${keywords}&pictureURLs=${pictureURLs}&postalCode=${postalCode}&brand=${brand}&UPC=${UPC}`;
-        const listItemFormUrl = `http://localhost:3000/?${query}`;
+        const listItemFormUrl = `https://e-bay-lister.herokuapp.com/?${query}`;
         openInNewTab(listItemFormUrl);
     });
 }
