@@ -67,7 +67,7 @@ body {
 }
 @media screen and (min-width: 1000px) {
     .form {
-        width: 50%;
+        width: 60%;
     }
     .picture {
         width: 28% !important;

@@ -5,7 +5,7 @@ export interface IItem {
     startPrice: number;
     country: string;
     currency: string;
-    dispatchTimeMax: number;
+    dispatchTimeMax: string;
     listingDuration: string;
     listingType: string;
     paymentMethods: string[];
@@ -13,6 +13,7 @@ export interface IItem {
     pictureURLs: string[];
     postalCode: string;
     quantity?: number;
+    returnPolicySupport: boolean;
     returnsAccepted: string;
     refund?: string;
     returnPolicyDescription?: string;
@@ -73,4 +74,9 @@ export interface IReturnPolicy {
 export interface IAuthTokenDetails {
     token: string;
     expirationTime: Date;
+}
+
+export interface IDispatchTimeMaxDetails {
+    value: string;
+    description: string;
 }

@@ -14,7 +14,7 @@ import axios from 'axios';
 import IconButton from 'material-ui/IconButton';
 import StarBorder from 'material-ui/svg-icons/toggle/star-border';
 import { eBayConstantData } from '../../../../eBayConstantData';
-import { ISite, ICategory, ICountry, IReturnPolicyDetail, IShippingServiceDetails } from '../../../../interfaces';
+import { ISite, ICategory, ICountry, IReturnPolicyDetail, IShippingServiceDetails, IDispatchTimeMaxDetails } from '../../../../interfaces';
 import { IAccount } from "../success/SuccessPage";
 
 interface IForm {
@@ -27,7 +27,7 @@ interface IForm {
     startPrice: number;
     country: string;
     currency: string;
-    dispatchTimeMax: number;
+    dispatchTimeMax: string;
     listingDuration: string;
     listingType: string;
     paymentMethods: string[];
@@ -60,6 +60,7 @@ interface IHomePageState {
     listingTypes: any;
     listingDurations: string[];
     paymentMethods: string[];
+    returnPolicySupport: false;
     refundOptions: IReturnPolicyDetail[];
     returnsWithinOptions: IReturnPolicyDetail[];
     shippingServicesObjects: IShippingServiceDetails[];
@@ -67,6 +68,7 @@ interface IHomePageState {
     snackbarOpen: boolean;
     snackbarMessage: string;
     APIAuthToken: string;
+    dispatchTimeMaxOptions: IDispatchTimeMaxDetails[];
     form: IForm;
 }
 
@@ -81,6 +83,7 @@ export class HomePage extends Component<any, IHomePageState> {
             listingTypes: eBayConstantData.listingTypes,
             refundOptions: [],
             listingDurations: eBayConstantData.listingDurations,
+            returnPolicySupport: false,
             returnsWithinOptions: [],
             paymentMethods: [],
             shippingServicesObjects: [],
@@ -88,6 +91,7 @@ export class HomePage extends Component<any, IHomePageState> {
             snackbarOpen: false,
             snackbarMessage: '',
             APIAuthToken: undefined,
+            dispatchTimeMaxOptions: [],
             form: {
                 siteID: eBayConstantData.sites[0].ID,
                 title: '',
@@ -98,7 +102,7 @@ export class HomePage extends Component<any, IHomePageState> {
                 startPrice: 0,
                 country: eBayConstantData.countries[0].code,
                 currency: 'INR',
-                dispatchTimeMax: 1,
+                dispatchTimeMax: '1',
                 listingDuration: eBayConstantData.listingDurations[0],
                 listingType: eBayConstantData.listingTypes.FIXED_PRICE_ITEM,
                 paymentMethods: [],
@@ -107,15 +111,15 @@ export class HomePage extends Component<any, IHomePageState> {
                 currentPictureURL: '',
                 postalCode: '',
                 quantity: 1,
-                returnsAccepted: true,
+                returnsAccepted: false,
                 refund: eBayConstantData.refundOptions.MONEY_BACK,
                 returnPolicyDescription: '',
                 returnsWithin: '',
                 shippingCostPaidBy: 'Buyer',
                 shippingServicePriority: 1,
                 shippingServiceCost: 0,
-                shippingService: '',
-                shippingType: '',
+                shippingService: 'Other',
+                shippingType: 'Flat',
                 brand: '',
                 UPC: '',
                 currentSpecific: '',
@@ -280,14 +284,27 @@ export class HomePage extends Component<any, IHomePageState> {
                             />;
                         })}
                     </SelectField>
-                    <TextField
-                        name='dispatchTimeMax'
-                        value={this.state.form.dispatchTimeMax}
-                        type='number'
-                        className='textField'
-                        floatingLabelText='Maximum Dispatch Time (In Days)'
-                        onChange={this.handleInputChange}
-                    />
+                    {
+                        this.state.dispatchTimeMaxOptions ?
+                            <SelectField
+                                value={this.state.form.dispatchTimeMax}
+                                className='selectField'
+                                floatingLabelText='Maximum Dispatch Time'
+                                onChange={this.handleSelectChange.bind(this, 'dispatchTimeMax')}
+                            >
+                                {this.state.dispatchTimeMaxOptions.map((dispatchTimeMaxOption, index) => {
+                                    return <MenuItem
+                                        value={dispatchTimeMaxOption.value}
+                                        primaryText={dispatchTimeMaxOption.description}
+                                        key={index}
+                                    />;
+                                })}
+                            </SelectField> :
+                            <div>
+                                <p className='materialParagraph'>Updating dispatch time max options...</p>
+                                <LinearProgress mode="indeterminate" />
+                            </div>
+                    }
                     <SelectField
                         className='selectField'
                         floatingLabelText='Listing Duration'
@@ -382,15 +399,18 @@ export class HomePage extends Component<any, IHomePageState> {
                         floatingLabelText='Item Quantity'
                         onChange={this.handleInputChange}
                     />
-                    <div className='toggleDiv'>
-                        <Toggle
-                            className='toggle'
-                            name='returnsAccepted'
-                            label='Returns Accepted'
-                            defaultToggled={this.state.form.returnsAccepted}
-                            onToggle={this.handleInputChange}
-                        />
-                    </div>
+                    {
+                        this.state.returnPolicySupport &&
+                        <div className='toggleDiv'>
+                            <Toggle
+                                className='toggle'
+                                name='returnsAccepted'
+                                label='Returns Accepted'
+                                defaultToggled={this.state.form.returnsAccepted}
+                                onToggle={this.handleInputChange}
+                            />
+                        </div>
+                    }
                     {
                         this.state.form.returnsAccepted &&
                         <div>
@@ -493,14 +513,15 @@ export class HomePage extends Component<any, IHomePageState> {
                             </div>
                     }
                     {
-                        !!this.state.shippingServicesObjects && !!this.state.form.shippingService &&
+                        !!this.state.shippingServicesObjects && !!this.state.shippingServicesObjects.length &&
+                        !!this.state.form.shippingService &&
                         <SelectField
                             className='selectField'
                             floatingLabelText='Shipping Type'
                             value={this.state.form.shippingType}
                             onChange={this.handleSelectChange.bind(this, 'shippingType')}
                         >
-                            {this.state.shippingServicesObjects.find(service => service.name === this.state.form.shippingService)
+                            {this.state.shippingServicesObjects && this.state.shippingServicesObjects.find(service => service.name === this.state.form.shippingService)
                                 .types.map(type => {
                                     return <MenuItem
                                         value={type}
@@ -564,8 +585,8 @@ export class HomePage extends Component<any, IHomePageState> {
 
     reloadEBayData() {
         this.getSuggestedItemCategories();
-        this.getReturnPolicy();
         this.getShippingServices();
+        this.getDispatchTimeMaxOptions();
     }
 
     handleSelectChange(propName: string, event: FormEvent<{}>, index: number, value: string): void {
@@ -593,7 +614,6 @@ export class HomePage extends Component<any, IHomePageState> {
     inputValueShouldBeNumber(inputName: string) {
         switch (inputName) {
             case 'startPrice':
-            case 'dispatchTimeMax':
             case 'quantity':
             case 'shippingServicePriority':
             case 'shippingServiceCost':
@@ -608,24 +628,32 @@ export class HomePage extends Component<any, IHomePageState> {
         const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
         const reqBody = {
             itemKeywords: this.state.form.keywords,
-            site: selectedSite,
-            APIAuthToken: `AgAAAA**AQAAAA**aAAAAA**w3xrWg**nY+sHZ2PrBmdj6wVnY+sEZ2PrA2dj6ADk4SjD5iCqA+dj6x9nY+seQ**5B4EAA**AAMAAA**0IwSrCUDIIaJZWsf11ROAxjV4ncqofn/z89Pi3R8AITOhTJWGbF51zP/5wOpUXJn9+Lg/OH5il7X8T2zuuTW137zFGQKmVMrYxKBMijEt5RivHLaiuVRnNAt9jzvczaJD17GjwbBwVrb0s+V1WN7E9CvubugpRQI66XFVnEqUJQAwHt9zhuFUFJoYcCKjC0eRYRiUgM+89iCEicQu/rTm7y7UgR4owFrzRpq9IGzetZeHnhgjwpZn6uyKN6RFXg0QY8cA6Dy2AuzWUW9fG0O3Yrbj0JI/MNf/myN38p7vpKxkMOrhL4v7FGep+zpTuydIFYeoVNS/1ZBTMhm9tNpKlmxan/fA3hJu2EcC1fZYNkPTYFLH+QWJ1NRwzfwEtJQ/lHq02bgtVWHoW7tyZui4yMoDg8f1C7o2t4520iuNtdhffIQyfxmuaEYDdsTZDz9UEfmIZN8+0nD8zgkwd7lc2VsO0j0XyYZ76WU+nYaIVWD1oZ2+OSXASwgsnlcaa6OGFtz/b8FDoUhHUMmLai4PG/NHd65e+nOGEA9zw6XcSsTvVwxSwHKjJusTFrNM85lpnRe718TjcevuWFMMnwNhCdqRO298JSt3bqPATMq24E5AGVz/VSMXqD0GFJJV8f+QaGr5OUq61o+dd/pVuZUh+EO+opMyk9Dp/dStTDSO0VBb6tK0yPBPAasQ7tE0zRMCG2tlkcAAPXN1+d/dQm8cp/wzCiEEjCDUxyL92ke+A+2Hcn8vyg3X85HN1Nijd4b`
+            site: selectedSite
         };
         axios.post('/api/categories', reqBody)
             .then(response => {
                 const { data } = response;
                 this.setState({ categories: data }, () => {
-                    if (data.length && this.state.form.categoryID !== this.state.categories[0].ID) {
+                    if (data.length && !this.isValidCategorySelected()) {
                         this.setState({
                             form: {
                                 ...this.state.form,
                                 categoryID: this.state.categories[0].ID
                             }
-                        }, () => this.getPaymentMethods());
+                        }, () => {
+                            this.getReturnPolicy();
+                            this.getPaymentMethods();
+                        });
                     }
                 });
             })
             .catch(err => alert(err));
+    }
+
+    isValidCategorySelected(): boolean {
+        const categoryIDs: string[] = this.state.categories.map(category => category.ID);
+        const selectedCategoryID: string = this.state.form.categoryID;
+        return !!selectedCategoryID && !!selectedCategoryID.length && !!~categoryIDs.indexOf(selectedCategoryID);
     }
 
     addKeyword(event: KeyboardEvent<{}>): void {
@@ -658,8 +686,7 @@ export class HomePage extends Component<any, IHomePageState> {
         const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
         const reqBody = {
             categoryID: this.state.form.categoryID,
-            site: selectedSite,
-            APIAuthToken: `AgAAAA**AQAAAA**aAAAAA**w3xrWg**nY+sHZ2PrBmdj6wVnY+sEZ2PrA2dj6ADk4SjD5iCqA+dj6x9nY+seQ**5B4EAA**AAMAAA**0IwSrCUDIIaJZWsf11ROAxjV4ncqofn/z89Pi3R8AITOhTJWGbF51zP/5wOpUXJn9+Lg/OH5il7X8T2zuuTW137zFGQKmVMrYxKBMijEt5RivHLaiuVRnNAt9jzvczaJD17GjwbBwVrb0s+V1WN7E9CvubugpRQI66XFVnEqUJQAwHt9zhuFUFJoYcCKjC0eRYRiUgM+89iCEicQu/rTm7y7UgR4owFrzRpq9IGzetZeHnhgjwpZn6uyKN6RFXg0QY8cA6Dy2AuzWUW9fG0O3Yrbj0JI/MNf/myN38p7vpKxkMOrhL4v7FGep+zpTuydIFYeoVNS/1ZBTMhm9tNpKlmxan/fA3hJu2EcC1fZYNkPTYFLH+QWJ1NRwzfwEtJQ/lHq02bgtVWHoW7tyZui4yMoDg8f1C7o2t4520iuNtdhffIQyfxmuaEYDdsTZDz9UEfmIZN8+0nD8zgkwd7lc2VsO0j0XyYZ76WU+nYaIVWD1oZ2+OSXASwgsnlcaa6OGFtz/b8FDoUhHUMmLai4PG/NHd65e+nOGEA9zw6XcSsTvVwxSwHKjJusTFrNM85lpnRe718TjcevuWFMMnwNhCdqRO298JSt3bqPATMq24E5AGVz/VSMXqD0GFJJV8f+QaGr5OUq61o+dd/pVuZUh+EO+opMyk9Dp/dStTDSO0VBb6tK0yPBPAasQ7tE0zRMCG2tlkcAAPXN1+d/dQm8cp/wzCiEEjCDUxyL92ke+A+2Hcn8vyg3X85HN1Nijd4b`
+            site: selectedSite
         };
         axios.post('/api/payment-methods', reqBody)
             .then(response => {
@@ -725,39 +752,62 @@ export class HomePage extends Component<any, IHomePageState> {
         const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
         const reqBody = {
             site: selectedSite,
-            APIAuthToken: `AgAAAA**AQAAAA**aAAAAA**w3xrWg**nY+sHZ2PrBmdj6wVnY+sEZ2PrA2dj6ADk4SjD5iCqA+dj6x9nY+seQ**5B4EAA**AAMAAA**0IwSrCUDIIaJZWsf11ROAxjV4ncqofn/z89Pi3R8AITOhTJWGbF51zP/5wOpUXJn9+Lg/OH5il7X8T2zuuTW137zFGQKmVMrYxKBMijEt5RivHLaiuVRnNAt9jzvczaJD17GjwbBwVrb0s+V1WN7E9CvubugpRQI66XFVnEqUJQAwHt9zhuFUFJoYcCKjC0eRYRiUgM+89iCEicQu/rTm7y7UgR4owFrzRpq9IGzetZeHnhgjwpZn6uyKN6RFXg0QY8cA6Dy2AuzWUW9fG0O3Yrbj0JI/MNf/myN38p7vpKxkMOrhL4v7FGep+zpTuydIFYeoVNS/1ZBTMhm9tNpKlmxan/fA3hJu2EcC1fZYNkPTYFLH+QWJ1NRwzfwEtJQ/lHq02bgtVWHoW7tyZui4yMoDg8f1C7o2t4520iuNtdhffIQyfxmuaEYDdsTZDz9UEfmIZN8+0nD8zgkwd7lc2VsO0j0XyYZ76WU+nYaIVWD1oZ2+OSXASwgsnlcaa6OGFtz/b8FDoUhHUMmLai4PG/NHd65e+nOGEA9zw6XcSsTvVwxSwHKjJusTFrNM85lpnRe718TjcevuWFMMnwNhCdqRO298JSt3bqPATMq24E5AGVz/VSMXqD0GFJJV8f+QaGr5OUq61o+dd/pVuZUh+EO+opMyk9Dp/dStTDSO0VBb6tK0yPBPAasQ7tE0zRMCG2tlkcAAPXN1+d/dQm8cp/wzCiEEjCDUxyL92ke+A+2Hcn8vyg3X85HN1Nijd4b`
+            categoryID: this.state.form.categoryID
         };
         axios.post('/api/return-policy', reqBody)
             .then(response => {
-                const { refundOptions, returnsWithinOptions } = response.data;
-                this.setState({ refundOptions, returnsWithinOptions }, () => {
-                    this.stateFormInputValueChange('refund', refundOptions[0].name);
-                    this.stateFormInputValueChange('returnsWithin', returnsWithinOptions[0].name);
+                const { refundOptions, returnsWithinOptions, returnPolicySupport } = response.data;
+                this.setState({ refundOptions, returnsWithinOptions, returnPolicySupport }, () => {
+                    if (!this.isValidRefundOptionSelected())
+                        this.stateFormInputValueChange('refund', refundOptions[0].name);
+                    if (!this.isValidReturnsWithinOptionSelected())
+                        this.stateFormInputValueChange('returnsWithin', returnsWithinOptions[0].name);
                 });
             })
             .catch(err => alert(err));
     }
 
+    isValidRefundOptionSelected(): boolean {
+        const refundOptionNames: string[] = this.state.refundOptions.map(option => option.name);
+        const selectedRefundOptionName: string = this.state.form.refund;
+        return !!selectedRefundOptionName && !!selectedRefundOptionName.length
+            && !!~refundOptionNames.indexOf(selectedRefundOptionName);
+    }
+
+    isValidReturnsWithinOptionSelected(): boolean {
+        const returnsWithinOptionNames: string[] = this.state.returnsWithinOptions.map(option => option.name);
+        const selectedReturnsWithinOptionName: string = this.state.form.returnsWithin;
+        return !!selectedReturnsWithinOptionName && !!selectedReturnsWithinOptionName.length
+            && !!~returnsWithinOptionNames.indexOf(selectedReturnsWithinOptionName);
+    }
+
     getShippingServices(): void {
         this.setState({ shippingServicesObjects: undefined });
         const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
-        const reqBody = {
-            site: selectedSite,
-            APIAuthToken: `AgAAAA**AQAAAA**aAAAAA**w3xrWg**nY+sHZ2PrBmdj6wVnY+sEZ2PrA2dj6ADk4SjD5iCqA+dj6x9nY+seQ**5B4EAA**AAMAAA**0IwSrCUDIIaJZWsf11ROAxjV4ncqofn/z89Pi3R8AITOhTJWGbF51zP/5wOpUXJn9+Lg/OH5il7X8T2zuuTW137zFGQKmVMrYxKBMijEt5RivHLaiuVRnNAt9jzvczaJD17GjwbBwVrb0s+V1WN7E9CvubugpRQI66XFVnEqUJQAwHt9zhuFUFJoYcCKjC0eRYRiUgM+89iCEicQu/rTm7y7UgR4owFrzRpq9IGzetZeHnhgjwpZn6uyKN6RFXg0QY8cA6Dy2AuzWUW9fG0O3Yrbj0JI/MNf/myN38p7vpKxkMOrhL4v7FGep+zpTuydIFYeoVNS/1ZBTMhm9tNpKlmxan/fA3hJu2EcC1fZYNkPTYFLH+QWJ1NRwzfwEtJQ/lHq02bgtVWHoW7tyZui4yMoDg8f1C7o2t4520iuNtdhffIQyfxmuaEYDdsTZDz9UEfmIZN8+0nD8zgkwd7lc2VsO0j0XyYZ76WU+nYaIVWD1oZ2+OSXASwgsnlcaa6OGFtz/b8FDoUhHUMmLai4PG/NHd65e+nOGEA9zw6XcSsTvVwxSwHKjJusTFrNM85lpnRe718TjcevuWFMMnwNhCdqRO298JSt3bqPATMq24E5AGVz/VSMXqD0GFJJV8f+QaGr5OUq61o+dd/pVuZUh+EO+opMyk9Dp/dStTDSO0VBb6tK0yPBPAasQ7tE0zRMCG2tlkcAAPXN1+d/dQm8cp/wzCiEEjCDUxyL92ke+A+2Hcn8vyg3X85HN1Nijd4b`
-        };
+        const reqBody = { site: selectedSite };
         axios.post('/api/shipping-services', reqBody)
             .then(response => {
                 const shippingServicesObjects = response.data;
-                this.setState({
-                    shippingServicesObjects,
-                    form: {
-                        ...this.state.form,
-                        shippingService: shippingServicesObjects[0].name,
-                        shippingType: shippingServicesObjects[0].types[0]
+                this.setState({ shippingServicesObjects }, () => {
+                    if (!this.isShippingServiceSelectedValid()) {
+                        this.setState({
+                            form: {
+                                ...this.state.form,
+                                shippingService: shippingServicesObjects[0].name,
+                                shippingType: this.state.shippingServicesObjects[0].types[0]
+                            }
+                        });
                     }
                 });
             })
-            .catch(err => alert(err));
+            .catch(err => this.alertError(err));
+    }
+
+    isShippingServiceSelectedValid(): boolean {
+        const shippingServiceNames: string[] = this.state.shippingServicesObjects.map(service => service.name);
+        const selectedShippingService: string = this.state.form.shippingService;
+        return !!selectedShippingService && !!selectedShippingService.length
+            && !!~shippingServiceNames.indexOf(selectedShippingService);
     }
 
     submitItemListing(): void {
@@ -851,7 +901,7 @@ export class HomePage extends Component<any, IHomePageState> {
         const shouldNotBeChecked: string[] = ['description', 'keywords', 'currentKeyword', 'paypalEmail',
             'currentPictureURL', 'quantity', 'returnsAccepted', 'refund', 'returnPolicyDescription',
             'returnsWithin', 'shippingCostPaidBy', 'shippingServicePriority', 'shippingServiceCost',
-            'brand', 'UPC', 'currentSpecific', 'itemSpecifics'];
+            'brand', 'UPC', 'currentSpecific', 'itemSpecifics', 'returnPolicySupport'];
         const params = Object.keys(this.state.form);
         for (let i = 0; i < params.length; i++) {
             const param: string = params[i];
@@ -862,5 +912,28 @@ export class HomePage extends Component<any, IHomePageState> {
             else if (requiredFieldIsEmpty) return true;
         }
         return false;
+    }
+
+    getDispatchTimeMaxOptions(): void {
+        this.setState({ dispatchTimeMaxOptions: undefined });
+        const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
+        const reqBody = { site: selectedSite };
+        axios.post('/api/dispatch-time-max', reqBody)
+            .then(response => {
+                const dispatchTimeMaxOptions = response.data;
+                this.setState({ dispatchTimeMaxOptions }, () => {
+                    if (!this.isDispatchTimeMaxSelectedValid()) {
+                        this.stateFormInputValueChange('dispatchTimeMax', this.state.dispatchTimeMaxOptions[0].value);
+                    }
+                });
+            })
+            .catch(err => this.alertError(err));
+    }
+
+    isDispatchTimeMaxSelectedValid(): boolean {
+        const dispatchTimeMaxValues: string[] = this.state.dispatchTimeMaxOptions.map(option => option.value);
+        const selectedDispatchTimeMax: string = this.state.form.dispatchTimeMax;
+        return !!selectedDispatchTimeMax && !!selectedDispatchTimeMax.length
+            && !!~dispatchTimeMaxValues.indexOf(selectedDispatchTimeMax);
     }
 }

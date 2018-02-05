@@ -10,6 +10,7 @@ import { getReturnPolicyDetails } from './routes/getReturnPolicyDetails';
 import { getSignInUrl } from './routes/getSignInUrl';
 import { getAuthToken } from './routes/getAuthToken';
 import { getConditionIDs } from './routes/getConditionIDs';
+import { getDispatchTimeMaxOptions } from './routes/getDispatchTimeMaxOptions';
 
 export function api(app: Application) {
     app.post('/api/add-item', addItem);
@@ -23,4 +24,5 @@ export function api(app: Application) {
     app.post('/api/condition-ids', getConditionIDs);
     app.get('/api/sign-in-url', getSignInUrl);
     app.post('/api/auth-token', getAuthToken);
+    app.post('/api/dispatch-time-max', getDispatchTimeMaxOptions);
 }

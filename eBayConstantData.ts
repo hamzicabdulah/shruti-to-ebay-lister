@@ -13,7 +13,8 @@ export const eBayConstantData = {
     featureIDs: {
         PAYMENT_METHODS: 'PaymentMethods',
         CONDITION_ENABLED: 'ConditionEnabled',
-        CONDITION_VALUES: 'ConditionValues'
+        CONDITION_VALUES: 'ConditionValues',
+        RETURN_POLICY_ENABLED: 'ReturnPolicyEnabled'
     },
     listingDurations: ['Days_3', 'Days_5', 'Days_7', 'Days_10'],
     listingTypes: {
@@ -69,7 +70,8 @@ export const eBayConstantData = {
         SITE_DETAILS: 'SiteDetails',
         CURRENCY_DETAILS: 'CurrencyDetails',
         SHIPPING_SERVICE_DETAILS: 'ShippingServiceDetails',
-        RETURN_POLICY_DETAILS: 'ReturnPolicyDetails'
+        RETURN_POLICY_DETAILS: 'ReturnPolicyDetails',
+        DISPATCH_TIME_MAX_DETAILS: 'DispatchTimeMaxDetails'
     },
     returnsAcceptedOptions: {
         RETURNS_ACCEPTED: 'ReturnsAccepted',

@@ -6,7 +6,7 @@ dotenv.config({
     path: __dirname + '/../../.env'
 });
 import { eBayConstantData } from '../../eBayConstantData';
-import { ISite, ICountry, IShippingServiceDetails, ICategory, IAddedItem, IItem, IItemTotalFee, IReturnPolicy, IAuthTokenDetails } from '../../interfaces';
+import { ISite, ICountry, IShippingServiceDetails, ICategory, IAddedItem, IItem, IItemTotalFee, IReturnPolicy, IAuthTokenDetails, IDispatchTimeMaxDetails } from '../../interfaces';
 
 export class EBay {
     APIUrl: string = eBayConstantData.APIUrl;
@@ -176,6 +176,49 @@ export class EBay {
         });
     }
 
+    getReturnPolicyDetails(): Promise<IReturnPolicy> {
+        return new Promise((resolve, reject) => {
+            this.getEBayDetails(this.detailNames.RETURN_POLICY_DETAILS)
+                .then(GeteBayDetailsResponse => {
+                    const { ReturnPolicyDetails } = GeteBayDetailsResponse;
+                    const { Refund, ReturnsWithin } = ReturnPolicyDetails[0];
+                    const returnPolicy: IReturnPolicy = {} as any;
+                    returnPolicy.refundOptions = Refund.map(refund => {
+                        return {
+                            name: refund.RefundOption[0],
+                            description: refund.Description[0]
+                        };
+                    })
+                    returnPolicy.returnsWithinOptions = ReturnsWithin.map(option => {
+                        return {
+                            name: option.ReturnsWithinOption[0],
+                            description: option.Description[0]
+                        };
+                    });
+                    resolve(returnPolicy);
+                })
+                .catch(err => reject(err));
+        });
+    }
+
+    getDispatchTimeMaxOptions(): Promise<IDispatchTimeMaxDetails[]> {
+        return new Promise((resolve, reject) => {
+            this.getEBayDetails(this.detailNames.DISPATCH_TIME_MAX_DETAILS)
+                .then(GeteBayDetailsResponse => {
+                    const { DispatchTimeMaxDetails } = GeteBayDetailsResponse;
+                    const dispatchTimeMaxOptions: IDispatchTimeMaxDetails[] = DispatchTimeMaxDetails.map(detail => {
+                        const dispatchTimeMaxOption: IDispatchTimeMaxDetails = {
+                            value: detail.DispatchTimeMax[0],
+                            description: detail.Description[0]
+                        }
+                        return dispatchTimeMaxOption;
+                    });
+                    resolve(dispatchTimeMaxOptions);
+                })
+                .catch(err => reject(err));
+        });
+    }
+
     getCategories(): Promise<ICategory[]> {
         return new Promise((resolve, reject) => {
             const XMLReqBody: string = this.getCategoriesXMLReqBody();
@@ -206,7 +249,7 @@ export class EBay {
                 <CategorySiteID>${this.site.ID}</CategorySiteID>
                 ${this.commonXMLElements}
                 <DetailLevel>ReturnAll</DetailLevel>
-                <ViewAllNodes>true</ViewAllNodes>
+                <ViewAllNodes>false</ViewAllNodes>
             </GetCategoriesRequest>
         `;
         return XMLReqBody;
@@ -245,6 +288,12 @@ export class EBay {
             <ReturnsWithinOption>${params.returnsWithin}</ReturnsWithinOption>
             <Description>${params.returnPolicyDescription}</Description>
             <ShippingCostPaidByOption>${params.shippingCostPaidBy}</ShippingCostPaidByOption>
+        ` : '';
+        const returnPolicy: string = params.returnPolicySupport ? `
+            <ReturnPolicy>
+                <ReturnsAcceptedOption>${params.returnsAccepted || ''}</ReturnsAcceptedOption>
+                ${returnPolicyOptions}
+            </ReturnPolicy>
         ` : '';
         const paymentMethods: string = params.paymentMethods && !!params.paymentMethods.length ?
             params.paymentMethods.map(method => '<PaymentMethods>' + method + '</PaymentMethods>').join(' ') :
@@ -298,10 +347,7 @@ export class EBay {
                     ${pictures}
                     <PostalCode>${params.postalCode || ''}</PostalCode>
                     <Quantity>${params.quantity || 1}</Quantity>
-                    <ReturnPolicy>
-                        <ReturnsAcceptedOption>${params.returnsAccepted || ''}</ReturnsAcceptedOption>
-                        ${returnPolicyOptions}
-                    </ReturnPolicy>
+                    ${returnPolicy}
                     <ShippingDetails>
                         <ShippingType>${params.shippingType || ''}</ShippingType>
                         <ShippingServiceOptions>
@@ -411,26 +457,12 @@ export class EBay {
         });
     }
 
-    getReturnPolicyDetails(): Promise<IReturnPolicy> {
+    getReturnPolicySupport(categoryID: string): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            this.getEBayDetails(this.detailNames.RETURN_POLICY_DETAILS)
-                .then(GeteBayDetailsResponse => {
-                    const { ReturnPolicyDetails } = GeteBayDetailsResponse;
-                    const { Refund, ReturnsWithin } = ReturnPolicyDetails[0];
-                    const returnPolicy: IReturnPolicy = {} as any;
-                    returnPolicy.refundOptions = Refund.map(refund => {
-                        return {
-                            name: refund.RefundOption[0],
-                            description: refund.Description[0]
-                        };
-                    })
-                    returnPolicy.returnsWithinOptions = ReturnsWithin.map(option => {
-                        return {
-                            name: option.ReturnsWithinOption[0],
-                            description: option.Description[0]
-                        };
-                    });
-                    resolve(returnPolicy);
+            this.getCategoryFeatures(categoryID, [this.featureIDs.RETURN_POLICY_ENABLED])
+                .then(GetCategoryFeaturesResponse => {
+                    const { ReturnPolicyEnabled } = GetCategoryFeaturesResponse.SiteDefaults[0];
+                    resolve(ReturnPolicyEnabled[0] === 'true' ? true : false);
                 })
                 .catch(err => reject(err));
         });
