@@ -1,7 +1,6 @@
 import * as express from 'express';
 import { Application, Request, Response } from 'express';
 import { resolve } from 'path';
-import { connect } from 'mongoose';
 import * as dotenv from 'dotenv';
 import * as bodyParser from 'body-parser';
 import { api } from './api/api';
@@ -11,7 +10,6 @@ export const app: Application = express();
 dotenv.config({
     path: __dirname + '/../.env'
 });
-connect(process.env.MONGODB_URI, { useMongoClient: true });
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
