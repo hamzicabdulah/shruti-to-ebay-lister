@@ -13,6 +13,8 @@ import { GridList, GridTile } from 'material-ui/GridList';
 import axios from 'axios';
 import IconButton from 'material-ui/IconButton';
 import StarBorder from 'material-ui/svg-icons/toggle/star-border';
+import { Card, CardActions, CardHeader, CardMedia, CardTitle, CardText } from 'material-ui/Card';
+import FlatButton from 'material-ui/FlatButton';
 import { eBayConstantData } from '../../../../eBayConstantData';
 import { ISite, ICategory, ICountry, IReturnPolicyDetail, IShippingServiceDetails, IDispatchTimeMaxDetails } from '../../../../interfaces';
 import { IAccount } from "../success/SuccessPage";
@@ -103,7 +105,7 @@ export class HomePage extends Component<any, IHomePageState> {
                 country: eBayConstantData.countries[0].code,
                 currency: 'INR',
                 dispatchTimeMax: '1',
-                listingDuration: eBayConstantData.listingDurations[0],
+                listingDuration: eBayConstantData.listingDurations[3],
                 listingType: eBayConstantData.listingTypes.FIXED_PRICE_ITEM,
                 paymentMethods: [],
                 paypalEmail: '',
@@ -375,20 +377,17 @@ export class HomePage extends Component<any, IHomePageState> {
                         onChange={this.handleInputChange}
                         onKeyPress={this.addPictureURL}
                     />
-                    <div className='chips'>
-                        {this.state.form.pictureURLs.map((pictureURL, index) => {
-                            return <Chip
-                                className='chip'
-                                onRequestDelete={() => this.removePictureURL(index)}
-                                key={index}
-                            >
-                                {pictureURL}
-                            </Chip>;
-                        })}
-                    </div>
                     <div className='picturesDiv'>
                         {this.state.form.pictureURLs.map((pictureURL, index) => (
-                            <img className='picture' key={index} src={pictureURL} />
+                            <Card className='picture' key={index}>
+                                <CardMedia>
+                                    <img src={pictureURL} />
+                                </CardMedia>
+                                <CardActions>
+                                    <FlatButton label='Remove' onClick={() => this.removePictureURL(index)} />
+                                    <FlatButton label='Open' href={pictureURL} target='_blank'  />
+                                </CardActions>
+                            </Card>
                         ))}
                     </div>
                     <TextField

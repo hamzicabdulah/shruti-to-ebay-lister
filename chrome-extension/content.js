@@ -39,7 +39,7 @@ function listItem() {
         const startPrice = INRToUSD(INR, USD, priceFromPage).toFixed(2);
         const query = `siteID=${siteID}&title=${title}&description=${description}&country=${country}&currency=${currency}&startPrice=${startPrice}&keywords=${keywords}&pictureURLs=${pictureURLs}&postalCode=${postalCode}&brand=${brand}&UPC=${UPC}`;
         const listItemFormUrl = `http://localhost:3000/?${query}`;
-        window.location.href = listItemFormUrl;
+        openInNewTab(listItemFormUrl);
     });
 }
 
@@ -47,4 +47,9 @@ function INRToUSD(INRRate, USDRate, INRAmount) {
     const EURAmount = INRAmount / INRRate;
     const USDAmount = EURAmount * USDRate;
     return USDAmount;
+}
+
+function openInNewTab(URL) {
+    const newTab = window.open(URL, '_blank');
+    newTab.focus();
 }
