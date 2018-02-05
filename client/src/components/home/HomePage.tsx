@@ -828,9 +828,9 @@ export class HomePage extends Component<any, IHomePageState> {
         axios.post('/api/add-item', reqBody)
             .then(response => {
                 this.setState({ listItemSubmitLoading: false });
-                const { errors } = response.data;
+                const { errors, totalFee, itemID } = response.data;
                 if (errors) this.alertError(errors);
-                else (this.snackbarSuccess());
+                else (this.snackbarSuccess(itemID, totalFee));
             })
             .catch(err => alert(err));
     }
@@ -840,8 +840,11 @@ export class HomePage extends Component<any, IHomePageState> {
         alert(errorToDisplay);
     }
 
-    snackbarSuccess(): void {
-
+    snackbarSuccess(itemID: string, totalFee: number): void {
+        this.setState({
+            snackbarOpen: true,
+            snackbarMessage: `Your item with ID: ${itemID} has been listed. Total fee is ${totalFee}`
+        });
     }
 
     handleSnackbarClose(): void {
