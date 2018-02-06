@@ -186,7 +186,12 @@ export class HomePage extends Component<any, IHomePageState> {
                         name='title'
                         value={this.state.form.title}
                         className='textField'
-                        floatingLabelText='Item Title'
+                        floatingLabelText={`Title (${this.state.form.title.length}/80)`}
+                        errorText={
+                            this.state.form.title.length > 80 ?
+                                'Item title cannot contain more than 80 characters' :
+                                null
+                        }
                         onChange={this.handleInputChange}
                     />
                     <TextField
@@ -198,14 +203,14 @@ export class HomePage extends Component<any, IHomePageState> {
                         onChange={this.handleInputChange}
                     />
                     <TextField
-                        name='description'
+                        name='brand'
                         value={this.state.form.brand}
                         className='textField'
                         floatingLabelText='Brand'
                         onChange={this.handleInputChange}
                     />
                     <TextField
-                        name='description'
+                        name='UPC'
                         value={this.state.form.UPC}
                         className='textField'
                         floatingLabelText='UPC'
@@ -223,20 +228,17 @@ export class HomePage extends Component<any, IHomePageState> {
                     />
                     <div className='chips'>
                         {this.state.form.keywords.map((keyword, index) => {
-                            return this.state.categories ?
-                                <Chip
-                                    className='chip'
-                                    onRequestDelete={() => this.removeKeyword(index)}
-                                    key={index}
-                                >
-                                    {keyword}
-                                </Chip> :
-                                <Chip
-                                    className='chip'
-                                    key={index}
-                                >
-                                    {keyword}
-                                </Chip>;
+                            <Chip
+                                className='chip'
+                                onRequestDelete={
+                                    this.state.categories ?
+                                        () => this.removeKeyword(index) :
+                                        null
+                                }
+                                key={index}
+                            >
+                                {keyword}
+                            </Chip>;
                         })}
                     </div>
                     {
@@ -919,6 +921,7 @@ export class HomePage extends Component<any, IHomePageState> {
     }
 
     shouldDisableButton(): boolean {
+        if (this.state.form.title.length > 80) return true;
         const shouldNotBeChecked: string[] = ['description', 'keywords', 'currentKeyword', 'paypalEmail',
             'currentPictureURL', 'quantity', 'returnsAccepted', 'refund', 'returnPolicyDescription',
             'returnsWithin', 'shippingCostPaidBy', 'shippingServicePriority', 'shippingServiceCost',
