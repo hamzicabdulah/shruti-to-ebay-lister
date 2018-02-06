@@ -51,6 +51,7 @@ interface IForm {
     UPC: string;
     currentSpecific: string;
     itemSpecifics: string[];
+    APIAuthToken: string;
     [key: string]: any;
 }
 
@@ -69,8 +70,8 @@ interface IHomePageState {
     listItemSubmitLoading: boolean;
     snackbarOpen: boolean;
     snackbarMessage: string;
-    APIAuthToken: string;
     dispatchTimeMaxOptions: IDispatchTimeMaxDetails[];
+    accounts: IAccount[];
     form: IForm;
 }
 
@@ -92,8 +93,8 @@ export class HomePage extends Component<any, IHomePageState> {
             listItemSubmitLoading: false,
             snackbarOpen: false,
             snackbarMessage: '',
-            APIAuthToken: undefined,
             dispatchTimeMaxOptions: [],
+            accounts: [],
             form: {
                 siteID: eBayConstantData.sites[0].ID,
                 title: '',
@@ -125,7 +126,9 @@ export class HomePage extends Component<any, IHomePageState> {
                 brand: '',
                 UPC: '',
                 currentSpecific: '',
-                itemSpecifics: []
+                itemSpecifics: [],
+                account: '',
+                APIAuthToken: undefined
             }
         };
         this.handleSelectChange = this.handleSelectChange.bind(this);
@@ -150,6 +153,20 @@ export class HomePage extends Component<any, IHomePageState> {
         return (
             <div className='home-page'>
                 <div className='form'>
+                    <SelectField
+                        className='selectField'
+                        floatingLabelText='eBay Account'
+                        value={this.state.form.APIAuthToken}
+                        onChange={this.handleSelectChange.bind(this, 'account')}
+                    >
+                        {this.state.accounts.map((account, index) => {
+                            return <MenuItem
+                                value={account.token}
+                                primaryText={account.username}
+                                key={index}
+                            />;
+                        })}
+                    </SelectField>
                     <SelectField
                         className='selectField'
                         floatingLabelText='Site'
@@ -385,7 +402,7 @@ export class HomePage extends Component<any, IHomePageState> {
                                 </CardMedia>
                                 <CardActions>
                                     <FlatButton label='Remove' onClick={() => this.removePictureURL(index)} />
-                                    <FlatButton label='Open' href={pictureURL} target='_blank'  />
+                                    <FlatButton label='Open' href={pictureURL} target='_blank' />
                                 </CardActions>
                             </Card>
                         ))}
@@ -820,7 +837,6 @@ export class HomePage extends Component<any, IHomePageState> {
         const reqBody = {
             ...this.state.form,
             site: selectedSite,
-            APIAuthToken: this.state.APIAuthToken,
             itemSpecifics,
             returnPolicySupport: this.state.returnPolicySupport,
             returnsAccepted: this.state.form.returnsAccepted ? eBayConstantData.returnsAcceptedOptions.RETURNS_ACCEPTED : eBayConstantData.returnsAcceptedOptions.RETURNS_NOT_ACCEPTED
@@ -860,8 +876,10 @@ export class HomePage extends Component<any, IHomePageState> {
         const accountsKey: string = 'eBayListerAccounts';
         const accounts: IAccount[] = JSON.parse(localStorage.getItem(accountsKey)) || [];
         if (!username || !accounts || !accounts.length) return this.props.history.push('/accounts');
-        const selectedAccount: IAccount = accounts.find(account => account.username === username);
-        this.setState({ APIAuthToken: selectedAccount.token });
+        this.setState({ accounts }, () => {
+            const selectedAccount: IAccount = this.state.accounts.find(account => account.username === username);
+            this.stateFormInputValueChange('APIAuthToken', selectedAccount.token);
+        });
     }
 
     fillInputsWithQueryParams(): Promise<any> {
