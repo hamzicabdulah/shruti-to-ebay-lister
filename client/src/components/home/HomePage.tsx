@@ -61,7 +61,7 @@ interface IHomePageState {
     countries: ICountry[];
     currencies: string[];
     listingTypes: any;
-    listingDurations: string[];
+    listingDurations: any;
     paymentMethods: string[];
     returnPolicySupport: false;
     refundOptions: IReturnPolicyDetail[];
@@ -106,7 +106,7 @@ export class HomePage extends Component<any, IHomePageState> {
                 country: eBayConstantData.countries[0].code,
                 currency: 'INR',
                 dispatchTimeMax: '1',
-                listingDuration: eBayConstantData.listingDurations[3],
+                listingDuration: 'Days_10',
                 listingType: eBayConstantData.listingTypes.FIXED_PRICE_ITEM,
                 paymentMethods: [],
                 paypalEmail: '',
@@ -127,7 +127,6 @@ export class HomePage extends Component<any, IHomePageState> {
                 UPC: '',
                 currentSpecific: '',
                 itemSpecifics: [],
-                account: '',
                 APIAuthToken: undefined
             }
         };
@@ -228,17 +227,19 @@ export class HomePage extends Component<any, IHomePageState> {
                     />
                     <div className='chips'>
                         {this.state.form.keywords.map((keyword, index) => {
-                            <Chip
-                                className='chip'
-                                onRequestDelete={
-                                    this.state.categories ?
-                                        () => this.removeKeyword(index) :
-                                        null
-                                }
-                                key={index}
-                            >
-                                {keyword}
-                            </Chip>;
+                            return (
+                                <Chip
+                                    className='chip'
+                                    onRequestDelete={
+                                        this.state.categories ?
+                                            () => this.removeKeyword(index) :
+                                            null
+                                    }
+                                    key={index}
+                                >
+                                    {keyword}
+                                </Chip>
+                            );
                         })}
                     </div>
                     {
@@ -332,13 +333,25 @@ export class HomePage extends Component<any, IHomePageState> {
                         value={this.state.form.listingDuration}
                         onChange={this.handleSelectChange.bind(this, 'listingDuration')}
                     >
-                        {this.state.listingDurations.map((listingDuration, index) => {
-                            return <MenuItem
-                                value={listingDuration}
-                                primaryText={listingDuration}
-                                key={index}
-                            />;
-                        })}
+                        {Object.keys(this.state.listingDurations.common)
+                            .map((listingDuration, index) => {
+                                return <MenuItem
+                                    value={listingDuration}
+                                    primaryText={this.state.listingDurations.common[listingDuration]}
+                                    key={listingDuration + index}
+                                />;
+                            })}
+                        {
+                            this.state.form.listingType === this.state.listingTypes.FIXED_PRICE_ITEM &&
+                            Object.keys(this.state.listingDurations.fixed)
+                                .map((listingDuration, index) => {
+                                    return <MenuItem
+                                        value={listingDuration}
+                                        primaryText={this.state.listingDurations.fixed[listingDuration]}
+                                        key={listingDuration + index}
+                                    />;
+                                })
+                        }
                     </SelectField>
                     <SelectField
                         className='selectField'
@@ -921,7 +934,9 @@ export class HomePage extends Component<any, IHomePageState> {
     }
 
     shouldDisableButton(): boolean {
-        if (this.state.form.title.length > 80) return true;
+        if (this.state.form.title.length > 80) {
+            return true;
+        }
         const shouldNotBeChecked: string[] = ['description', 'keywords', 'currentKeyword', 'paypalEmail',
             'currentPictureURL', 'quantity', 'returnsAccepted', 'refund', 'returnPolicyDescription',
             'returnsWithin', 'shippingCostPaidBy', 'shippingServicePriority', 'shippingServiceCost',
@@ -933,7 +948,9 @@ export class HomePage extends Component<any, IHomePageState> {
             const requiredFieldIsEmpty: boolean = (this.inputValueShouldBeNumber(param) && isNaN(this.state.form[param])) ||
                 (!this.inputValueShouldBeNumber(param) && (!this.state.form[param] || !this.state.form[param].length));
             if (~shouldNotBeChecked.indexOf(param)) continue;
-            else if (requiredFieldIsEmpty) return true;
+            else if (requiredFieldIsEmpty) {
+                return true;
+            }
         }
         return false;
     }

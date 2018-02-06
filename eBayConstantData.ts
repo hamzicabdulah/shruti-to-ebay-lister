@@ -14,9 +14,22 @@ export const eBayConstantData = {
         PAYMENT_METHODS: 'PaymentMethods',
         CONDITION_ENABLED: 'ConditionEnabled',
         CONDITION_VALUES: 'ConditionValues',
-        RETURN_POLICY_ENABLED: 'ReturnPolicyEnabled'
+        RETURN_POLICY_ENABLED: 'ReturnPolicyEnabled',
+        LISTING_DURATIONS: 'ListingDurations'
     },
-    listingDurations: ['Days_3', 'Days_5', 'Days_7', 'Days_10'],
+    listingDurations: {
+        common: {
+            Days_1: '1 Day',
+            Days_3: '3 Days',
+            Days_5: '5 Days',
+            Days_7: '7 Days',
+            Days_10: '10 Days'
+        },
+        fixed: {
+            GTC: 'Good \'Til Cancelled',
+            Days_30: '30 Days'
+        }
+    },
     listingTypes: {
         AD_TYPE: 'AdType',
         CHINESE: 'Chinese',

@@ -468,6 +468,17 @@ export class EBay {
         });
     }
 
+    getListingDurations(categoryID: string): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            this.getCategoryFeatures(categoryID, [this.featureIDs.LISTING_DURATIONS])
+                .then(GetCategoryFeaturesResponse => {
+                    console.log(GetCategoryFeaturesResponse);
+                    resolve(GetCategoryFeaturesResponse);
+                })
+                .catch(err => reject(err));
+        });
+    }
+
     getAuthToken(sessionID: string): Promise<IAuthTokenDetails> {
         return new Promise((resolve, reject) => {
             const XMLReqBody: string = this.getFetchTokenXMLReqBody(sessionID);

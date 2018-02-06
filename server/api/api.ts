@@ -11,6 +11,7 @@ import { getSignInUrl } from './routes/getSignInUrl';
 import { getAuthToken } from './routes/getAuthToken';
 import { getConditionIDs } from './routes/getConditionIDs';
 import { getDispatchTimeMaxOptions } from './routes/getDispatchTimeMaxOptions';
+import { getListingDurations } from './routes/getListingDurations';
 
 export function api(app: Application) {
     app.post('/api/add-item', addItem);
@@ -25,4 +26,5 @@ export function api(app: Application) {
     app.get('/api/sign-in-url', getSignInUrl);
     app.post('/api/auth-token', getAuthToken);
     app.post('/api/dispatch-time-max', getDispatchTimeMaxOptions);
+    app.post('/api/listing-durations', getListingDurations);
 }
