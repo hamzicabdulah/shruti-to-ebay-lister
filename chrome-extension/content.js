@@ -16,7 +16,7 @@ function addListToEBayBtn() {
 
 function listItem() {
     const title = encodeURIComponent($('#ContentPlaceHolder1_ProductName').text());
-    const description = encodeURIComponent($('#ContentPlaceHolder1_ProductDescription').text().replace(/&/gi, 'AND').trim());
+    const description = encodeURIComponent($('#ContentPlaceHolder1_ProductDescription').text().replace(/&/gi, 'AND').trim().replace(/\n\s*\n/g, '\n'));
     const mainKeywords = $('.BrdcmbClk').eq(2).text().trim();
     const subKeywords = $('.BrdcmbClk').eq(1).text().trim();
     const keywords = encodeURIComponent(`${mainKeywords} ${subKeywords}`);

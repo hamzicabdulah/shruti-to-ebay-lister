@@ -822,6 +822,7 @@ export class HomePage extends Component<any, IHomePageState> {
             site: selectedSite,
             APIAuthToken: this.state.APIAuthToken,
             itemSpecifics,
+            returnPolicySupport: this.state.returnPolicySupport,
             returnsAccepted: this.state.form.returnsAccepted ? eBayConstantData.returnsAcceptedOptions.RETURNS_ACCEPTED : eBayConstantData.returnsAcceptedOptions.RETURNS_NOT_ACCEPTED
         };
         axios.post('/api/add-item', reqBody)
@@ -903,7 +904,7 @@ export class HomePage extends Component<any, IHomePageState> {
         const shouldNotBeChecked: string[] = ['description', 'keywords', 'currentKeyword', 'paypalEmail',
             'currentPictureURL', 'quantity', 'returnsAccepted', 'refund', 'returnPolicyDescription',
             'returnsWithin', 'shippingCostPaidBy', 'shippingServicePriority', 'shippingServiceCost',
-            'brand', 'UPC', 'currentSpecific', 'itemSpecifics', 'returnPolicySupport'];
+            'brand', 'UPC', 'currentSpecific', 'itemSpecifics'];
         const params = Object.keys(this.state.form);
         for (let i = 0; i < params.length; i++) {
             const param: string = params[i];

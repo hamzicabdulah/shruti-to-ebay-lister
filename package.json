@@ -8,9 +8,7 @@
     "start:server": "ts-node server",
     "dev:server": "nodemon -e ts --ignore \"client/**/*\" --ignore \"server/tests/**/*\"  --exec \"npm run start:server\"",
     "dev:client": "webpack -wd",
-    "test": "mocha -r ts-node/register -r jsdom-global/register -r client/tests/configureTests \"client/tests/**/*.*\" \"server/tests/**/*.*\"",
-    "test:watch": "npm run test -- --watch-extensions ts,tsx --watch",
-    "dev": "npm-run-all --parallel dev:server dev:client test:watch"
+    "dev": "npm-run-all --parallel dev:server dev:client"
   },
   "author": "Abdulah Hamzic <https://github.com/hamzicabdulah>",
   "license": "ISC",

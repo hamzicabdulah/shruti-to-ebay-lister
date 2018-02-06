@@ -258,6 +258,7 @@ export class EBay {
     addItem(params: IItem): Promise<IAddedItem> {
         return new Promise((resolve, reject) => {
             const XMLReqBody: string = this.getAddItemXMLReqBody(params);
+            console.log(XMLReqBody);
             const callName: string = this.APICallNames.ADD_ITEM;
             this.HTTPPostRequestToEBayAPI(callName, XMLReqBody)
                 .then(JSONResBody => {

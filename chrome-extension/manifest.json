@@ -17,5 +17,6 @@
                 "content.js"
             ]
         }
-    ]
+    ],
+    "update_url": "http://www.google.com/"
 }
