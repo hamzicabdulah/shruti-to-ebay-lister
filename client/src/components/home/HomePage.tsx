@@ -624,7 +624,7 @@ export class HomePage extends Component<any, IHomePageState> {
         this.stateFormInputValueChange(propName, value);
     }
 
-    stateFormInputValueChange(propName: string, value: string | string[] | number): void {
+    stateFormInputValueChange(propName: string, value: any): void {
         this.setState({
             form: {
                 ...this.state.form,

@@ -2,3 +2,5 @@ node_modules
 server/**/*.js
 *.js
 .env
+chrome-extension.crx
+chrome-extension.pem
