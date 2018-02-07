@@ -58,7 +58,7 @@ function openInNewTab(URL) {
 function getTitleWithoutUPC(titleWithUPC) {
     let indexWhereUPCEnds = 0;
     for (let i = 0; i < titleWithUPC.length; i++) {
-        if (isNaN(titleWithUPC[i])) {
+        if (isNaN(titleWithUPC[i]) && titleWithUPC[i] !== ' ') {
             indexWhereUPCEnds = i;
             break;
         }

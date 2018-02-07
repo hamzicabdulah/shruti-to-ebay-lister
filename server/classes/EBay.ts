@@ -262,16 +262,16 @@ export class EBay {
             this.HTTPPostRequestToEBayAPI(callName, XMLReqBody)
                 .then(JSONResBody => {
                     const { Errors, ItemID, StartTime, EndTime, Fees } = JSONResBody.AddItemResponse;
-                    if (Fees && Fees.length) {
+                    if (ItemID && ItemID.length && ItemID[0]) {
                         const totalFee: IItemTotalFee = {
-                            currency: Fees.Fee[0].Fee[0].$.currencyID,
-                            value: Fees.Fee.reduce((acc, fee) => acc + +fee[0].Fee[0]._, 0)
+                            currency: Fees[0].Fee[0].Fee[0].$.currencyID,
+                            value: (Fees[0].Fee.reduce((acc, fee) => acc + +fee.Fee[0]._, 0)).toFixed(2)
                         };
                         return resolve({
                             totalFee,
-                            itemID: ItemID,
-                            startTime: StartTime,
-                            endTime: EndTime
+                            itemID: ItemID[0],
+                            startTime: StartTime[0],
+                            endTime: EndTime[0]
                         });
                     }
                     const errors: string[] = Errors.filter(error => error.SeverityCode[0] === 'Error')

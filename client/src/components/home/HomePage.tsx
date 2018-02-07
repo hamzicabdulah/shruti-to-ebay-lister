@@ -16,7 +16,7 @@ import StarBorder from 'material-ui/svg-icons/toggle/star-border';
 import { Card, CardActions, CardHeader, CardMedia, CardTitle, CardText } from 'material-ui/Card';
 import FlatButton from 'material-ui/FlatButton';
 import { eBayConstantData } from '../../../../eBayConstantData';
-import { ISite, ICategory, ICountry, IReturnPolicyDetail, IShippingServiceDetails, IDispatchTimeMaxDetails } from '../../../../interfaces';
+import { ISite, ICategory, ICountry, IReturnPolicyDetail, IShippingServiceDetails, IDispatchTimeMaxDetails, IItemTotalFee } from '../../../../interfaces';
 import { IAccount } from "../success/SuccessPage";
 
 interface IForm {
@@ -860,22 +860,33 @@ export class HomePage extends Component<any, IHomePageState> {
             .then(response => {
                 this.setState({ listItemSubmitLoading: false });
                 const { errors, totalFee, itemID } = response.data;
-                if (errors) this.alertError(errors);
-                else (this.snackbarSuccess(itemID, totalFee));
+                console.log(response.data);
+                if (errors) return this.alertError(errors);
+                this.snackbarSuccess(itemID, totalFee);
+                this.redirectAfterItemListing(itemID);
+
             })
             .catch(err => alert(err));
     }
 
     alertError(err: string | string[]): void {
+        console.log(err);
         const errorToDisplay: string = typeof err === 'string' ? err : err.join('\n');
         alert(errorToDisplay);
     }
 
-    snackbarSuccess(itemID: string, totalFee: number): void {
+    snackbarSuccess(itemID: string, totalFee: IItemTotalFee): void {
         this.setState({
             snackbarOpen: true,
-            snackbarMessage: `Your item with ID: ${itemID} has been listed. Total fee is ${totalFee}`
+            snackbarMessage: `Your item has been listed. Total fee is ${totalFee.value}${totalFee.currency}. Redirecting you...`
         });
+    }
+
+    redirectAfterItemListing(itemID: string) {
+        setTimeout(() => {
+            const titleFormattedForUrl: string = this.state.form.title.replace(/ /gi, '-');
+            window.location.href = `https://www.ebay.com/itm/${titleFormattedForUrl}/${itemID}`;
+        }, 5000);
     }
 
     handleSnackbarClose(): void {
