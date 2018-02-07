@@ -156,7 +156,7 @@ export class HomePage extends Component<any, IHomePageState> {
                         className='selectField'
                         floatingLabelText='eBay Account'
                         value={this.state.form.APIAuthToken}
-                        onChange={this.handleSelectChange.bind(this, 'account')}
+                        onChange={this.handleSelectChange.bind(this, 'APIAuthToken')}
                     >
                         {this.state.accounts.map((account, index) => {
                             return <MenuItem
