@@ -23,7 +23,7 @@ function listItem() {
     const keywords = encodeURIComponent(`${mainKeywords} ${subKeywords}`);
     const pictureURLs = encodeURIComponent($('.PrdThmbHld img')
         .map((index, element) => {
-            return $(element).attr('src').replace('medium', 'big');
+            return $(element).attr('src').replace('_medium', '');
         }).get().join(' '));
     const siteID = '0';
     const country = 'IN';
