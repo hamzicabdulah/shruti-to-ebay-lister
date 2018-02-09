@@ -16,30 +16,31 @@ function addListToEBayBtn() {
 
 function listItem() {
     const titleWithUPC = encodeURIComponent($('#ContentPlaceHolder1_ProductName').text());
-    const title = getTitleWithoutUPC(titleWithUPC);
-    const description = encodeURIComponent($('#ContentPlaceHolder1_ProductDescription').text().replace(/&/gi, 'AND').trim().replace(/\n\s*\n/g, '\n'));
-    const mainKeywords = $('.BrdcmbClk').eq(2).text().trim();
-    const subKeywords = $('.BrdcmbClk').eq(1).text().trim();
-    const keywords = encodeURIComponent(`${mainKeywords} ${subKeywords}`);
-    const pictureURLs = encodeURIComponent($('.PrdThmbHld img')
-        .map((index, element) => {
-            return $(element).attr('src').replace('_medium', '');
-        }).get().join(' '));
-    const siteID = '0';
-    const country = 'IN';
-    const postalCode = '400002';
-    const priceTag = $('#ContentPlaceHolder1_SingleSP').text().split(' ');
-    const currencyFromPage = encodeURIComponent(priceTag[0]);
-    const priceFromPage = encodeURIComponent(priceTag[1]);
+    const mainKeywords= $('.BrdcmbClk').eq(2).text().trim();
+    const subKeywords= $('.BrdcmbClk').eq(1).text().trim();
+    const itemParams = {
+        productUrl: encodeURIComponent(document.URL),
+        title: getTitleWithoutUPC(titleWithUPC),
+        keywords: encodeURIComponent(`${mainKeywords} ${subKeywords}`),
+        pictureURLs: encodeURIComponent($('.PrdThmbHld img')
+            .map((index, element) => {
+                return $(element).attr('src').replace('_medium', '');
+            }).get().join(' ')),
+        siteID: '0',
+        country: 'IN',
+        postalCode: '400002',
+        currency: 'USD',
+        brand: $('#ContentPlaceHolder1_BrandName').text(),
+        UPC: $('#ContentPlaceHolder1_ProductCode').text()
+    };
     const fixerAPIUrl = 'https://api.fixer.io/latest?symbols=INR,USD';
-    const brand = $('#ContentPlaceHolder1_BrandName').text();
-    const UPC = $('#ContentPlaceHolder1_ProductCode').text();
     $.get(fixerAPIUrl, data => {
         const { INR, USD } = data.rates;
-        const currency = 'USD';
-        const startPrice = INRToUSD(INR, USD, priceFromPage).toFixed(2);
-        const query = `siteID=${siteID}&title=${title}&description=${description}&country=${country}&currency=${currency}&startPrice=${startPrice}&keywords=${keywords}&pictureURLs=${pictureURLs}&postalCode=${postalCode}&brand=${brand}&UPC=${UPC}`;
-        const listItemFormUrl = `https://e-bay-lister.herokuapp.com/?${query}`;
+        const priceTag = $('#ContentPlaceHolder1_SingleSP').text().split(' ');
+        const priceFromPage = encodeURIComponent(priceTag[1]);
+        itemParams.startPrice = INRToUSD(INR, USD, priceFromPage).toFixed(2);
+        const query = Object.keys(itemParams).map(param => `${param}=${itemParams[param]}`).join('&');
+        const listItemFormUrl = `http://localhost:3000/?${query}`;
         openInNewTab(listItemFormUrl);
     });
 }

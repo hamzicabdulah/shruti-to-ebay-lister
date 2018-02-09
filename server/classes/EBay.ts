@@ -329,7 +329,7 @@ export class EBay {
                 ${this.commonXMLElements}
                 <Item>
                     <Title>${params.title || ''}</Title>
-                    <Description>${params.description || ''}</Description>
+                    <Description>${params.description ? '<![CDATA[' + params.description + ']]>' : ''}</Description>
                     <PrimaryCategory>
                         <CategoryID>${params.categoryID || ''}</CategoryID>
                     </PrimaryCategory>

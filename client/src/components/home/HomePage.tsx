@@ -15,9 +15,10 @@ import IconButton from 'material-ui/IconButton';
 import StarBorder from 'material-ui/svg-icons/toggle/star-border';
 import { Card, CardActions, CardHeader, CardMedia, CardTitle, CardText } from 'material-ui/Card';
 import FlatButton from 'material-ui/FlatButton';
+import { html as htmlBeautify } from 'js-beautify';
 import { eBayConstantData } from '../../../../eBayConstantData';
 import { ISite, ICategory, ICountry, IReturnPolicyDetail, IShippingServiceDetails, IDispatchTimeMaxDetails, IItemTotalFee } from '../../../../interfaces';
-import { IAccount } from "../success/SuccessPage";
+import { IAccount } from '../success/SuccessPage';
 
 interface IForm {
     siteID: string;
@@ -197,10 +198,20 @@ export class HomePage extends Component<any, IHomePageState> {
                         name='description'
                         value={this.state.form.description}
                         className='textField'
-                        floatingLabelText='Description'
+                        floatingLabelText='Description (HTML code supported)'
                         multiLine={true}
+                        rowsMax={20}
                         onChange={this.handleInputChange}
+                        disabled={typeof this.state.form.description == 'undefined'}
                     />
+                    {
+                        typeof this.state.form.description == 'undefined' ?
+                            <div>
+                                <p className='materialParagraph'>Updating description...</p>
+                                <LinearProgress mode="indeterminate" />
+                            </div> :
+                            !!~this.state.form.description.indexOf('</') && <div dangerouslySetInnerHTML={{ __html: this.state.form.description }} />
+                    }
                     <TextField
                         name='brand'
                         value={this.state.form.brand}
@@ -870,7 +881,6 @@ export class HomePage extends Component<any, IHomePageState> {
     }
 
     alertError(err: string | string[]): void {
-        console.log(err);
         const errorToDisplay: string = typeof err === 'string' ? err : err.join('\n');
         alert(errorToDisplay);
     }
@@ -908,28 +918,29 @@ export class HomePage extends Component<any, IHomePageState> {
         });
     }
 
-    fillInputsWithQueryParams(): Promise<any> {
-        return new Promise((resolve, reject) => {
-            const paramsStr: string = this.props.location.search.slice(1);
-            const paramPairsArray: string[] = paramsStr.split('&');
-            const params: any = {};
-            paramPairsArray.forEach(paramPair => {
-                const [key, encodedValue] = paramPair.split('=');
-                const value = decodeURIComponent(encodedValue);
-                if (this.inputValueShouldBeArray(key)) {
-                    params[key] = value.split(' ');
-                } else if (this.inputValueShouldBeNumber(key)) {
-                    params[key] = +value;
-                } else {
-                    params[key] = value;
-                }
-            });
-            this.setState({
-                form: {
-                    ...this.state.form,
-                    ...params
-                }
-            }, () => resolve());
+    async fillInputsWithQueryParams(): Promise<any> {
+        const paramsStr: string = this.props.location.search.slice(1);
+        const paramPairsArray: string[] = paramsStr.split('&');
+        const params: any = {};
+        for (let i = 0; i < paramPairsArray.length; i++) {
+            const paramPair: string = paramPairsArray[i];
+            const [key, encodedValue] = paramPair.split('=');
+            const value = decodeURIComponent(encodedValue);
+            if (key === 'productUrl') {
+                await this.fillDescriptionInput(value);
+            } else if (this.inputValueShouldBeArray(key)) {
+                params[key] = value.split(' ');
+            } else if (this.inputValueShouldBeNumber(key)) {
+                params[key] = +value;
+            } else {
+                params[key] = value;
+            }
+        }
+        await this.setState({
+            form: {
+                ...this.state.form,
+                ...params
+            }
         });
     }
 
@@ -942,6 +953,25 @@ export class HomePage extends Component<any, IHomePageState> {
             default:
                 return false;
         }
+    }
+
+    fillDescriptionInput(productUrl: string): void {
+        this.setState({
+            form: {
+                ...this.state.form,
+                description: undefined
+            }
+        }, () => {
+            console.log(this.state.form.description);
+            axios.get(productUrl)
+                .then(response => {
+                    const { data } = response;
+                    const descriptionStartIndex: number = data.indexOf('<div id="ContentPlaceHolder1_ProductDescription"');
+                    const descriptionEndIndex: number = data.indexOf('</div>', descriptionStartIndex) + 6;
+                    const descriptionHTML: string = htmlBeautify(data.slice(descriptionStartIndex, descriptionEndIndex));
+                    this.stateFormInputValueChange('description', descriptionHTML);
+                });
+        });
     }
 
     shouldDisableButton(): boolean {
