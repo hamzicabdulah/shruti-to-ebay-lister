@@ -6,7 +6,7 @@ dotenv.config({
     path: __dirname + '/../../.env'
 });
 import { eBayConstantData } from '../../eBayConstantData';
-import { ISite, ICountry, IShippingServiceDetails, ICategory, IAddedItem, IItem, IItemTotalFee, IReturnPolicy, IAuthTokenDetails, IDispatchTimeMaxDetails } from '../../interfaces';
+import { ISite, ICountry, IShippingServiceDetails, ICategory, IAddedItem, IItem, IItemTotalFee, IReturnPolicy, IAuthTokenDetails, IDispatchTimeMaxDetails, ILocation } from '../../interfaces';
 
 export class EBay {
     APIUrl: string = eBayConstantData.APIUrl;
@@ -153,6 +153,23 @@ export class EBay {
                         return shippingService;
                     });
                     resolve(shippingServices);
+                })
+                .catch(err => reject(err));
+        });
+    }
+
+    getShippingLocations(): Promise<ILocation[]> {
+        return new Promise((resolve, reject) => {
+            this.getEBayDetails(this.detailNames.SHIPPING_LOCATION_DETAILS)
+                .then(GeteBayDetailsResponse => {
+                    const { ShippingLocationDetails } = GeteBayDetailsResponse;
+                    const shippingLocations: ILocation[] = ShippingLocationDetails.map(location => {
+                        return {
+                            name: location.ShippingLocation[0],
+                            description: location.Description[0]
+                        };
+                    });
+                    resolve(shippingLocations);
                 })
                 .catch(err => reject(err));
         });

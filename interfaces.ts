@@ -82,3 +82,8 @@ export interface IDispatchTimeMaxDetails {
     value: string;
     description: string;
 }
+
+export interface ILocation {
+    name: string;
+    description: string;
+}

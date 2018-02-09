@@ -84,7 +84,8 @@ export const eBayConstantData = {
         CURRENCY_DETAILS: 'CurrencyDetails',
         SHIPPING_SERVICE_DETAILS: 'ShippingServiceDetails',
         RETURN_POLICY_DETAILS: 'ReturnPolicyDetails',
-        DISPATCH_TIME_MAX_DETAILS: 'DispatchTimeMaxDetails'
+        DISPATCH_TIME_MAX_DETAILS: 'DispatchTimeMaxDetails',
+        SHIPPING_LOCATION_DETAILS: 'ShippingLocationDetails'
     },
     returnsAcceptedOptions: {
         RETURNS_ACCEPTED: 'ReturnsAccepted',
