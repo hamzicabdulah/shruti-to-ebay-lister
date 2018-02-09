@@ -45,7 +45,9 @@ interface IForm {
     returnPolicyDescription: string;
     returnsWithin: string;
     shippingCostPaidBy: 'Buyer' | 'Seller';
-    shippingService: string;
+    domesticShippingService: string;
+    supportsInternationalShipping: boolean;
+    internationalShippingService: string;
     shippingType: string;
     shippingServicePriority: number;
     shippingServiceCost: number;
@@ -125,8 +127,10 @@ export class HomePage extends Component<any, IHomePageState> {
                 shippingCostPaidBy: 'Buyer',
                 shippingServicePriority: 1,
                 shippingServiceCost: 0,
-                shippingService: 'Other',
+                domesticShippingService: 'Other',
                 shippingType: 'Flat',
+                supportsInternationalShipping: false,
+                internationalShippingService: 'USPSGlobalExpress',
                 brand: '',
                 UPC: '',
                 currentSpecific: '',
@@ -549,17 +553,18 @@ export class HomePage extends Component<any, IHomePageState> {
                                 !!this.state.shippingServicesObjects ?
                                     <SelectField
                                         className='selectField'
-                                        floatingLabelText='Shipping Service'
-                                        value={this.state.form.shippingService}
-                                        onChange={this.handleSelectChange.bind(this, 'shippingService')}
+                                        floatingLabelText='Domestic Shipping Service'
+                                        value={this.state.form.domesticShippingService}
+                                        onChange={this.handleSelectChange.bind(this, 'domesticShippingService')}
                                     >
-                                        {this.state.shippingServicesObjects.map((service, index) => {
-                                            return <MenuItem
-                                                value={service.name}
-                                                primaryText={service.name}
-                                                key={index}
-                                            />;
-                                        })}
+                                        {this.state.shippingServicesObjects.filter(service => !service.isInternational)
+                                            .map((service, index) => {
+                                                return <MenuItem
+                                                    value={service.name}
+                                                    primaryText={service.name}
+                                                    key={index}
+                                                />;
+                                            })}
                                     </SelectField> :
                                     <div>
                                         <p className='materialParagraph'>Updating shipping services...</p>
@@ -568,14 +573,14 @@ export class HomePage extends Component<any, IHomePageState> {
                             }
                             {
                                 !!this.state.shippingServicesObjects && !!this.state.shippingServicesObjects.length &&
-                                !!this.state.form.shippingService &&
+                                !!this.state.form.domesticShippingService &&
                                 <SelectField
                                     className='selectField'
                                     floatingLabelText='Shipping Type'
                                     value={this.state.form.shippingType}
                                     onChange={this.handleSelectChange.bind(this, 'shippingType')}
                                 >
-                                    {this.state.shippingServicesObjects && this.state.shippingServicesObjects.find(service => service.name === this.state.form.shippingService)
+                                    {this.state.shippingServicesObjects && this.state.shippingServicesObjects.find(service => service.name === this.state.form.domesticShippingService)
                                         .types.map(type => {
                                             return <MenuItem
                                                 value={type}
@@ -584,6 +589,38 @@ export class HomePage extends Component<any, IHomePageState> {
                                             />;
                                         })}
                                 </SelectField>
+                            }
+                            <div className='toggleDiv'>
+                                <Toggle
+                                    className='toggle'
+                                    name='supportsInternationalShipping'
+                                    label='International Shipping Support'
+                                    defaultToggled={this.state.form.supportsInternationalShipping}
+                                    onToggle={this.handleInputChange}
+                                />
+                            </div>
+                            {
+                                !!this.state.form.supportsInternationalShipping &&
+                                (!!this.state.shippingServicesObjects ?
+                                    <SelectField
+                                        className='selectField'
+                                        floatingLabelText='International Shipping Service'
+                                        value={this.state.form.internationalShippingService}
+                                        onChange={this.handleSelectChange.bind(this, 'internationalShippingService')}
+                                    >
+                                        {this.state.shippingServicesObjects.filter(service => service.isInternational)
+                                            .map((service, index) => {
+                                                return <MenuItem
+                                                    value={service.name}
+                                                    primaryText={service.name}
+                                                    key={index}
+                                                />;
+                                            })}
+                                    </SelectField> :
+                                    <div>
+                                        <p className='materialParagraph'>Updating shipping services...</p>
+                                        <LinearProgress mode="indeterminate" />
+                                    </div>)
                             }
                             <TextField
                                 name='currentSpecific'
@@ -848,8 +885,9 @@ export class HomePage extends Component<any, IHomePageState> {
                         this.setState({
                             form: {
                                 ...this.state.form,
-                                shippingService: shippingServicesObjects[0].name,
-                                shippingType: this.state.shippingServicesObjects[0].types[0]
+                                domesticShippingService: shippingServicesObjects.filter((service: IShippingServiceDetails) => !service.isInternational)[0].name,
+                                internationalShippingService: shippingServicesObjects.filter((service: IShippingServiceDetails) => service.isInternational)[0].name,
+                                shippingType: this.state.shippingServicesObjects.filter((service: IShippingServiceDetails) => !service.isInternational)[0].types[0]
                             }
                         });
                     }
@@ -860,7 +898,7 @@ export class HomePage extends Component<any, IHomePageState> {
 
     isShippingServiceSelectedValid(): boolean {
         const shippingServiceNames: string[] = this.state.shippingServicesObjects.map(service => service.name);
-        const selectedShippingService: string = this.state.form.shippingService;
+        const selectedShippingService: string = this.state.form.domesticShippingService;
         return !!selectedShippingService && !!selectedShippingService.length
             && !!~shippingServiceNames.indexOf(selectedShippingService);
     }
@@ -940,42 +978,44 @@ export class HomePage extends Component<any, IHomePageState> {
             const value = decodeURIComponent(encodedValue);
             params[key] = value;
         });
-        if (~Object.keys(params).indexOf('pictureURLs')) this.stateFormInputValueChange('pictureURLs', params.pictureURLs.split(' '));
-        if (~Object.keys(params).indexOf('startPrice')) this.stateFormInputValueChange('startPrice', +params.startPrice);
+        if (~Object.keys(params).indexOf('pictureURLs')) await this.stateFormInputValueChange('pictureURLs', params.pictureURLs.split(' '));
+        if (~Object.keys(params).indexOf('startPrice')) await this.stateFormInputValueChange('startPrice', +params.startPrice);
         if (~Object.keys(params).indexOf('productUrl')) await this.fillMainDetailsFromUrl(params.productUrl);
         return;
     }
 
-    fillMainDetailsFromUrl(productUrl: string): void {
-        this.setState({ gettingDataFromShruti: true }, () => {
-            axios.get(productUrl)
-                .then(response => {
-                    const { data } = response;
-                    const parser = new DOMParser();
-                    const productHTML: any = parser.parseFromString(data, 'text/html');
-                    const titleWithUPC: string = productHTML.querySelector('#ContentPlaceHolder1_ProductName').innerText;
-                    const mainKeywords: string = productHTML.querySelectorAll('.BrdcmbClk')[2].innerText.trim();
-                    const subKeywords: string = productHTML.querySelectorAll('.BrdcmbClk')[1].innerText.trim();
-                    const dataFromShruti: IForm = {
-                        title: this.getTitleWithoutUPC(titleWithUPC),
-                        keywords: `${mainKeywords} ${subKeywords}`.split(' '),
-                        siteID: '0',
-                        country: 'IN',
-                        postalCode: '400002',
-                        currency: 'USD',
-                        description: htmlBeautify(productHTML.querySelector('#ContentPlaceHolder1_ProductDescription').outerHTML),
-                        brand: productHTML.querySelector('#ContentPlaceHolder1_BrandName').innerText,
-                        UPC: productHTML.querySelector('#ContentPlaceHolder1_ProductCode').innerText
-                    } as any;
-                    this.setState({
-                        gettingDataFromShruti: false,
-                        form: {
-                            ...this.state.form,
-                            ...dataFromShruti
-                        }
-                    });
-                })
-                .catch(() => this.alertError('Could not get data from Shruti product page'));
+    fillMainDetailsFromUrl(productUrl: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.setState({ gettingDataFromShruti: true }, () => {
+                axios.get(productUrl)
+                    .then(response => {
+                        const { data } = response;
+                        const parser = new DOMParser();
+                        const productHTML: any = parser.parseFromString(data, 'text/html');
+                        const titleWithUPC: string = productHTML.querySelector('#ContentPlaceHolder1_ProductName').innerText;
+                        const mainKeywords: string = productHTML.querySelectorAll('.BrdcmbClk')[2].innerText.trim();
+                        const subKeywords: string = productHTML.querySelectorAll('.BrdcmbClk')[1].innerText.trim();
+                        const dataFromShruti: IForm = {
+                            title: this.getTitleWithoutUPC(titleWithUPC),
+                            keywords: `${mainKeywords} ${subKeywords}`.split(' '),
+                            siteID: '0',
+                            country: 'IN',
+                            postalCode: '400002',
+                            currency: 'USD',
+                            description: htmlBeautify(productHTML.querySelector('#ContentPlaceHolder1_ProductDescription').outerHTML),
+                            brand: productHTML.querySelector('#ContentPlaceHolder1_BrandName').innerText,
+                            UPC: productHTML.querySelector('#ContentPlaceHolder1_ProductCode').innerText
+                        } as any;
+                        this.setState({
+                            gettingDataFromShruti: false,
+                            form: {
+                                ...this.state.form,
+                                ...dataFromShruti
+                            }
+                        }, () => resolve());
+                    })
+                    .catch(() => reject(this.alertError('Could not get data from Shruti product page')));
+            });
         });
     }
 
@@ -1004,7 +1044,8 @@ export class HomePage extends Component<any, IHomePageState> {
         const shouldNotBeChecked: string[] = ['description', 'keywords', 'currentKeyword', 'paypalEmail',
             'currentPictureURL', 'quantity', 'returnsAccepted', 'refund', 'returnPolicyDescription',
             'returnsWithin', 'shippingCostPaidBy', 'shippingServicePriority', 'shippingServiceCost',
-            'brand', 'UPC', 'currentSpecific', 'itemSpecifics'];
+            'brand', 'UPC', 'currentSpecific', 'internationalShippingService', 'itemSpecifics',
+            'supportsInternationalShipping'];
         const params = Object.keys(this.state.form);
         for (let i = 0; i < params.length; i++) {
             const param: string = params[i];
@@ -1013,6 +1054,7 @@ export class HomePage extends Component<any, IHomePageState> {
                 (!this.inputValueShouldBeNumber(param) && (!this.state.form[param] || !this.state.form[param].length));
             if (~shouldNotBeChecked.indexOf(param)) continue;
             else if (requiredFieldIsEmpty) {
+                console.log(param, this.state.form[param]);
                 return true;
             }
         }

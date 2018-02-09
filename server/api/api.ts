@@ -4,7 +4,7 @@ import { getSuggestedCategories } from './routes/getSuggestedCategories';
 import { getCountries } from './routes/getCountries';
 import { getCurrencies } from './routes/getCurrencies';
 import { getSites } from './routes/getSites';
-import { getDomesticShippingServices } from './routes/getDomesticShippingServices';
+import { getShippingServices } from './routes/getShippingServices';
 import { getPaymentMethods } from './routes/getPaymentMethods';
 import { getReturnPolicyDetails } from './routes/getReturnPolicyDetails';
 import { getSignInUrl } from './routes/getSignInUrl';
@@ -19,7 +19,7 @@ export function api(app: Application) {
     app.post('/api/countries', getCountries);
     app.post('/api/currencies', getCurrencies);
     app.post('/api/sites', getSites);
-    app.post('/api/shipping-services', getDomesticShippingServices);
+    app.post('/api/shipping-services', getShippingServices);
     app.post('/api/payment-methods', getPaymentMethods);
     app.post('/api/return-policy', getReturnPolicyDetails);
     app.post('/api/condition-ids', getConditionIDs);

@@ -28,7 +28,7 @@ body {
 }
 .toggle {
     margin: 1em 0;
-    max-width: 12em;
+    max-width: 18em;
 }
 .chips {
     display: flex;

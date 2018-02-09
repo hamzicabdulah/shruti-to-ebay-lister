@@ -21,7 +21,9 @@ export interface IItem {
     shippingCostPaidBy?: string;
     shippingType: string;
     shippingServicePriority: number;
-    shippingService: string;
+    domesticShippingService: string;
+    supportsInternationalShipping: boolean;
+    internationalShippingService: string;
     shippingServiceCost: number;
     brand: string;
     UPC: string;

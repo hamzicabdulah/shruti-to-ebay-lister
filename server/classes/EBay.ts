@@ -313,16 +313,22 @@ export class EBay {
                 <Name>UPC</Name>
                 <Value>${params.UPC}</Value>
             </NameValueList>
-        ` :
-            '';
+        ` : '';
+        const internationalShipping: string = params.supportsInternationalShipping ?
+            `<InternationalShippingServiceOption>
+                <ShippingService>${params.internationalShippingService}</ShippingService>
+                <ShippingServiceAdditionalCost currencyID="${params.currency || ''}">${params.shippingServiceCost || 0}</ShippingServiceAdditionalCost>
+                <ShippingServiceCost currencyID="${params.currency || ''}">${params.shippingServiceCost || 0}</ShippingServiceCost>
+                <ShippingServicePriority>${params.shippingServicePriority}</ShippingServicePriority>
+                <ShipToLocation>Worldwide</ShipToLocation>
+            </InternationalShippingServiceOption>` : '';
         const additionalItemSpecifics: any = params.itemSpecifics && !!Object.keys(params.itemSpecifics).length ?
             Object.keys(params.itemSpecifics).map(key => `
             <NameValueList>
                 <Name>${key}</Name>
                 <Value>${params.itemSpecifics[key] || ''}</Value>
             </NameValueList>
-        `) :
-            '';
+        `) : '';
         const XMLReqBody: string = `
             <?xml version='1.0' encoding='utf-8'?>
             <AddItemRequest xmlns='urn:ebay:apis:eBLBaseComponents'>
@@ -352,9 +358,10 @@ export class EBay {
                         <ShippingType>${params.shippingType || ''}</ShippingType>
                         <ShippingServiceOptions>
                             <ShippingServicePriority>${params.shippingServicePriority || 0}</ShippingServicePriority>
-                            <ShippingService>${params.shippingService || ''}</ShippingService>
+                            <ShippingService>${params.domesticShippingService || ''}</ShippingService>
                             <ShippingServiceCost>${params.shippingServiceCost || 0}</ShippingServiceCost>
                         </ShippingServiceOptions>
+                        ${internationalShipping}
                     </ShippingDetails>
                     <Site>${this.site.name}</Site>
                      <ItemSpecifics>
