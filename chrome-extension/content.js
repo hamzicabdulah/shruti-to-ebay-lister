@@ -29,7 +29,7 @@ function listItem() {
         const priceFromPage = +priceTag[1];
         itemParams.startPrice = encodeURIComponent(INRToUSD(INR, USD, priceFromPage).toFixed(2));
         const query = Object.keys(itemParams).map(param => `${param}=${itemParams[param]}`).join('&');
-        const listItemFormUrl = `http://localhost:3000/?${query}`;
+        const listItemFormUrl = `https://e-bay-lister.herokuapp.com/?${query}`;
         openInNewTab(listItemFormUrl);
     });
 }
