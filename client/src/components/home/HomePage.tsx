@@ -922,7 +922,6 @@ export class HomePage extends Component<any, IHomePageState> {
             .then(response => {
                 this.setState({ listItemSubmitLoading: false });
                 const { errors, totalFee, itemID } = response.data;
-                console.log(response.data);
                 if (errors) return this.alertError(errors);
                 this.snackbarSuccess(itemID, totalFee);
                 this.redirectAfterItemListing(itemID);
@@ -997,7 +996,7 @@ export class HomePage extends Component<any, IHomePageState> {
                         const subKeywords: string = productHTML.querySelectorAll('.BrdcmbClk')[1].innerText.trim();
                         const dataFromShruti: IForm = {
                             title: this.getTitleWithoutUPC(titleWithUPC),
-                            keywords: `${mainKeywords} ${subKeywords}`.split(' '),
+                            keywords: 'India Cultural Ethnic Clothing'.split(' '),
                             siteID: '0',
                             country: 'IN',
                             postalCode: '400002',
@@ -1053,10 +1052,7 @@ export class HomePage extends Component<any, IHomePageState> {
             const requiredFieldIsEmpty: boolean = (this.inputValueShouldBeNumber(param) && isNaN(this.state.form[param])) ||
                 (!this.inputValueShouldBeNumber(param) && (!this.state.form[param] || !this.state.form[param].length));
             if (~shouldNotBeChecked.indexOf(param)) continue;
-            else if (requiredFieldIsEmpty) {
-                console.log(param, this.state.form[param]);
-                return true;
-            }
+            else if (requiredFieldIsEmpty) return true;
         }
         return false;
     }

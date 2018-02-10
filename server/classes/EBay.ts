@@ -177,20 +177,36 @@ export class EBay {
 
     getSuggestedCategoriesForItem(itemKeywords: string[]): Promise<ICategory[]> {
         return new Promise((resolve, reject) => {
-            this.getCategories()
-                .then(allCategories => {
-                    const suggestedCategories = allCategories.filter(category => {
-                        for (let i = 0; i < itemKeywords.length; i++) {
-                            if (~category.name.toLowerCase().indexOf(itemKeywords[i].toLowerCase())) {
-                                return true;
-                            }
-                        }
-                        return false;
+            const XMLReqBody: string = this.getSuggestedCategoriesXMLReqBody(itemKeywords);
+            const callName: string = this.APICallNames.GET_SUGGESTED_CATEGORIES;
+            this.HTTPPostRequestToEBayAPI(callName, XMLReqBody)
+                .then(JSONResBody => {
+                    const { Errors, SuggestedCategoryArray } = JSONResBody.GetSuggestedCategoriesResponse;
+                    if (Errors && Errors.length) {
+                        const errors: string[] = Errors.map(error => error.LongMessage[0]);
+                        return reject(errors);
+                    }
+                    const categories: ICategory[] = SuggestedCategoryArray[0].SuggestedCategory.map(category => {
+                        return {
+                            name: category.Category[0].CategoryName[0],
+                            ID: category.Category[0].CategoryID[0]
+                        };
                     });
-                    resolve(suggestedCategories);
+                    resolve(categories);
                 })
                 .catch(err => reject(err));
         });
+    }
+
+    getSuggestedCategoriesXMLReqBody(itemKeywords: string[]): string {
+        const XMLReqBody: string = `
+            ${this.XMLDefaultRoot}
+            <GetSuggestedCategoriesRequest xmlns="${this.XMLNSDefaultAttribute}">
+                ${this.commonXMLElements}
+                <Query>${itemKeywords.join(' ')}</Query>
+            </GetSuggestedCategoriesRequest>
+        `;
+        return XMLReqBody;
     }
 
     getReturnPolicyDetails(): Promise<IReturnPolicy> {

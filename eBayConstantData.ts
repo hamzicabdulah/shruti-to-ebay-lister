@@ -8,7 +8,8 @@ export const eBayConstantData = {
         GET_SESSION_ID: 'GetSessionID',
         GET_EBAY_DETAILS: 'GeteBayDetails',
         GET_CATEGORY_FEATURES: 'GetCategoryFeatures',
-        FETCH_TOKEN: 'FetchToken'
+        FETCH_TOKEN: 'FetchToken',
+        GET_SUGGESTED_CATEGORIES: 'GetSuggestedCategories'
     },
     featureIDs: {
         PAYMENT_METHODS: 'PaymentMethods',
