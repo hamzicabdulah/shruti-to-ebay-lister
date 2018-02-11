@@ -111,8 +111,8 @@ export class HomePage extends Component<any, IHomePageState> {
                 startPrice: 0,
                 country: eBayConstantData.countries[0].code,
                 currency: 'INR',
-                dispatchTimeMax: '1',
-                listingDuration: 'Days_10',
+                dispatchTimeMax: '3',
+                listingDuration: 'GTC',
                 listingType: eBayConstantData.listingTypes.FIXED_PRICE_ITEM,
                 paymentMethods: [],
                 paypalEmail: '',
@@ -120,8 +120,8 @@ export class HomePage extends Component<any, IHomePageState> {
                 currentPictureURL: '',
                 postalCode: '',
                 quantity: 1,
-                returnsAccepted: false,
-                refund: eBayConstantData.refundOptions.MONEY_BACK,
+                returnsAccepted: true,
+                refund: eBayConstantData.refundOptions.MONEY_BACK_OR_REPLACEMENT,
                 returnPolicyDescription: '',
                 returnsWithin: '',
                 shippingCostPaidBy: 'Buyer',
@@ -129,8 +129,8 @@ export class HomePage extends Component<any, IHomePageState> {
                 shippingServiceCost: 0,
                 domesticShippingService: 'Other',
                 shippingType: 'Flat',
-                supportsInternationalShipping: false,
-                internationalShippingService: 'USPSGlobalExpress',
+                supportsInternationalShipping: true,
+                internationalShippingService: 'StandardInternational',
                 brand: '',
                 UPC: '',
                 currentSpecific: '',
@@ -671,12 +671,13 @@ export class HomePage extends Component<any, IHomePageState> {
     componentDidMount() {
         this.fillInputsWithShrutiProductData()
             .then(() => this.reloadEBayData())
+            .then(() => this.getTokenFromLocalStorage())
+            .then(() => this.fillUserSpecificEmail())
             .catch(err => alert(err));
-        this.getTokenFromLocalStorage();
     }
 
     reloadEBayData() {
-        this.getSuggestedItemCategories();
+        if (this.state.form.keywords && this.state.form.keywords.length) this.getSuggestedItemCategories();
         this.getShippingServices();
         this.getDispatchTimeMaxOptions();
     }
@@ -692,8 +693,19 @@ export class HomePage extends Component<any, IHomePageState> {
                 [propName]: value
             }
         }, () => {
-            if (propName === 'siteID') this.reloadEBayData();
-            else if (propName === 'categoryID') this.getPaymentMethods();
+            switch (propName) {
+                case 'siteID':
+                    this.reloadEBayData();
+                    break;
+                case 'categoryID':
+                    this.getPaymentMethods();
+                    break;
+                case 'APIAuthToken':
+                    this.fillUserSpecificEmail();
+                    break;
+                default:
+                    return;
+            }
         });
     }
 
@@ -716,30 +728,31 @@ export class HomePage extends Component<any, IHomePageState> {
     }
 
     getSuggestedItemCategories(): void {
-        this.setState({ categories: undefined });
-        const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
-        const reqBody = {
-            itemKeywords: this.state.form.keywords,
-            site: selectedSite
-        };
-        axios.post('/api/categories', reqBody)
-            .then(response => {
-                const { data } = response;
-                this.setState({ categories: data }, () => {
-                    if (data.length && !this.isValidCategorySelected()) {
-                        this.setState({
-                            form: {
-                                ...this.state.form,
-                                categoryID: this.state.categories[0].ID
-                            }
-                        }, () => {
-                            this.getReturnPolicy();
-                            this.getPaymentMethods();
-                        });
-                    }
-                });
-            })
-            .catch(err => alert(err));
+        this.setState({ categories: undefined }, () => {
+            const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
+            const reqBody = {
+                itemKeywords: this.state.form.keywords,
+                site: selectedSite
+            };
+            axios.post('/api/categories', reqBody)
+                .then(response => {
+                    const { data } = response;
+                    this.setState({ categories: data }, () => {
+                        if (data.length && !this.isValidCategorySelected()) {
+                            this.setState({
+                                form: {
+                                    ...this.state.form,
+                                    categoryID: this.state.categories[0].ID
+                                }
+                            }, () => {
+                                this.getReturnPolicy();
+                                this.getPaymentMethods();
+                            });
+                        }
+                    });
+                })
+                .catch(err => alert(err));
+        });
     }
 
     isValidCategorySelected(): boolean {
@@ -1034,6 +1047,14 @@ export class HomePage extends Component<any, IHomePageState> {
         const EURAmount: number = INRAmount / INRRate;
         const USDAmount: number = EURAmount * USDRate;
         return USDAmount;
+    }
+
+    fillUserSpecificEmail(): void {
+        const selectedAccount: IAccount = this.state.accounts.find(account => account.token === this.state.form.APIAuthToken);
+        if (selectedAccount.username === 'asvpublic')
+            this.stateFormInputValueChange('paypalEmail', 'avaswani@yahoo.com');
+        else if (selectedAccount.username === 'chessustore')
+            this.stateFormInputValueChange('paypalEmail', 'asvpublic@yahoo.com');
     }
 
     shouldDisableButton(): boolean {
