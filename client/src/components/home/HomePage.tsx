@@ -255,7 +255,7 @@ export class HomePage extends Component<any, IHomePageState> {
                             />
                             <AddListingButton
                                 submitItemListing={this.submitItemListing}
-                                disabled={this.shouldDisableButton()}
+                                shouldDisableButton={this.shouldDisableButton}
                             />
                             {
                                 this.state.listItemSubmitLoading &&
@@ -680,7 +680,7 @@ export class HomePage extends Component<any, IHomePageState> {
     }
 
     shouldDisableButton(): boolean {
-        if (this.state.form.title.length > 80) {
+        if (this.state.form.title.length > 80 || this.state.listItemSubmitLoading) {
             return true;
         }
         const shouldNotBeChecked: string[] = ['description', 'keywords', 'currentKeyword', 'paypalEmail',

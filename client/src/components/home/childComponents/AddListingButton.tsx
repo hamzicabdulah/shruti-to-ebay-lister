@@ -10,7 +10,7 @@ export const AddListingButton: StatelessComponent<any> = (props: IAddListingButt
             label='List Item'
             primary={true}
             onClick={props.submitItemListing}
-            disabled={props.disabled}
+            disabled={props.shouldDisableButton()}
         />
     );
 }

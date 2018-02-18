@@ -342,7 +342,7 @@ export interface ICurrentSpecificTextProps {
 
 export interface IAddListingButtonProps {
     submitItemListing: () => void;
-    disabled: boolean;
+    shouldDisableButton: () => boolean;
 }
 
 export interface ISuccessPageState {
