@@ -336,6 +336,7 @@ export class HomePage extends Component<any, IHomePageState> {
     }
 
     getSuggestedItemCategories(): void {
+        if (!this.state.form.keywords || !this.state.form.keywords.length) return;
         this.setState({ categories: undefined }, () => {
             const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
             const reqBody = {
@@ -345,6 +346,7 @@ export class HomePage extends Component<any, IHomePageState> {
             axios.post('/api/categories', reqBody)
                 .then(response => {
                     const { data } = response;
+                    if (data.errors) return this.alertError(data.errors);
                     this.setState({ categories: data }, () => {
                         if (data.length && !this.isValidCategorySelected()) {
                             this.setState({
@@ -404,6 +406,7 @@ export class HomePage extends Component<any, IHomePageState> {
         axios.post('/api/payment-methods', reqBody)
             .then(response => {
                 const { data } = response;
+                if (data.errors) return this.alertError(data.errors);
                 this.setState({ paymentMethods: data }, () => {
                     const currentlySelectedPaymentMethods = [...this.state.form.paymentMethods];
                     currentlySelectedPaymentMethods.forEach((method, index) => {
@@ -469,7 +472,9 @@ export class HomePage extends Component<any, IHomePageState> {
         };
         axios.post('/api/return-policy', reqBody)
             .then(response => {
-                const { refundOptions, returnsWithinOptions, returnPolicySupport } = response.data;
+                const { data } = response;
+                if (data.errors) return this.alertError(data.errors);
+                const { refundOptions, returnsWithinOptions, returnPolicySupport } = data;
                 this.setState({ refundOptions, returnsWithinOptions, returnPolicySupport }, () => {
                     if (!this.isValidRefundOptionSelected())
                         this.stateFormInputValueChange('refund', refundOptions[0].name);
@@ -500,7 +505,9 @@ export class HomePage extends Component<any, IHomePageState> {
         const reqBody = { site: selectedSite };
         axios.post('/api/shipping-services', reqBody)
             .then(response => {
-                const shippingServicesObjects = response.data;
+                const { data } = response;
+                if (data.errors) return this.alertError(data.errors);
+                const shippingServicesObjects = data;
                 this.setState({ shippingServicesObjects }, () => {
                     if (!this.isShippingServiceSelectedValid()) {
                         this.setState({
@@ -541,8 +548,10 @@ export class HomePage extends Component<any, IHomePageState> {
         };
         axios.post('/api/add-item', reqBody)
             .then(response => {
+                const { data } = response;
                 this.setState({ listItemSubmitLoading: false });
-                const { errors, totalFee, itemID } = response.data;
+                if (data.errors) return this.alertError(data.errors);
+                const { errors, totalFee, itemID } = data;
                 if (errors) return this.alertError(errors);
                 this.snackbarSuccess(itemID, totalFee);
                 this.redirectAfterItemListing(itemID);
@@ -697,7 +706,9 @@ export class HomePage extends Component<any, IHomePageState> {
         const reqBody = { site: selectedSite };
         axios.post('/api/dispatch-time-max', reqBody)
             .then(response => {
-                const dispatchTimeMaxOptions = response.data;
+                const { data } = response;
+                if (data.errors) return this.alertError(data.errors);
+                const dispatchTimeMaxOptions = data;
                 this.setState({ dispatchTimeMaxOptions }, () => {
                     if (!this.isDispatchTimeMaxSelectedValid()) {
                         this.stateFormInputValueChange('dispatchTimeMax', this.state.dispatchTimeMaxOptions[0].value);
