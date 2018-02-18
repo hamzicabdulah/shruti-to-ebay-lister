@@ -3,16 +3,7 @@ import { Component, FormEvent, KeyboardEvent } from 'react';
 import RaisedButton from 'material-ui/RaisedButton';
 import LinearProgress from 'material-ui/LinearProgress';
 import axios from 'axios';
-
-interface ISuccessPageState {
-    token: string;
-    username: string;
-}
-
-export interface IAccount {
-    username: string;
-    token: string;
-}
+import { ISuccessPageState, IAccount } from '../../../../interfaces';
 
 export class SuccessPage extends Component<any, ISuccessPageState> {
     constructor(props: any) {

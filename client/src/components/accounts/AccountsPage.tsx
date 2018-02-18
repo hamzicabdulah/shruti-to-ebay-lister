@@ -6,14 +6,8 @@ import RaisedButton from 'material-ui/RaisedButton';
 import LinearProgress from 'material-ui/LinearProgress';
 import Snackbar from 'material-ui/Snackbar';
 import axios from 'axios';
-import { IAccount } from '../success/SuccessPage';
-
-interface IAccountsPageState {
-    accounts: IAccount[];
-    selectedAccount: string;
-    signInUrl: string;
-    snackbarOpen: boolean;
-}
+import { IAccount, IAccountsPageState } from '../../../../interfaces';
+import { AccountSelectField } from './childComponents/AccountSelectField';
 
 export class AccountsPage extends Component<any, IAccountsPageState> {
     constructor(props: any) {
@@ -41,25 +35,22 @@ export class AccountsPage extends Component<any, IAccountsPageState> {
                                     <p className='materialParagraph accountsParagraph'>
                                         Below are all your previously added eBay accounts. You are currently using your account with the username {this.state.selectedAccount} to list any items. In order to use a different one, select it from the select box below and save your changes.
                                     </p>
-                                    <SelectField
-                                        className='selectField'
-                                        floatingLabelText='Account Used'
-                                        value={this.state.selectedAccount}
-                                        onChange={this.handleAccountSelectChange}
-                                    >
-                                        {this.state.accounts.map((account, index) => {
-                                            return <MenuItem
-                                                value={account.username}
-                                                primaryText={account.username}
-                                                key={index}
-                                            />;
-                                        })}
-                                    </SelectField>
+                                    <AccountSelectField
+                                        selectedAccount={this.state.selectedAccount}
+                                        accounts={this.state.accounts}
+                                        handleSelectChange={this.handleAccountSelectChange}
+                                    />
                                     <RaisedButton label='Save' primary={true} onClick={this.saveAccountChange} />
                                 </div>
                             }
                             <p className='materialParagraph accountsParagraph'>
-                                {!this.state.accounts.length && <p className='materialParagraph accountsParagraph'>You haven't added any accounts yet.</p>} Use the link below to add a new eBay account for item listing. By clicking the link you will get redirected to eBay's login page. After logging in and agreeing to the user consent policy, you'll be able to list items using the eBay account you've signed in with.
+                                {
+                                    !this.state.accounts.length &&
+                                    <p className='materialParagraph accountsParagraph'>
+                                        You haven't added any accounts yet.
+                                    </p>
+                                } 
+                                Use the link below to add a new eBay account for item listing. By clicking the link you will get redirected to eBay's login page. After logging in and agreeing to the user consent policy, you'll be able to list items using the eBay account you've signed in with.
                             </p>
                             <RaisedButton label='Add New Account' primary={true} href={this.state.signInUrl} />
                         </div> :

@@ -1,143 +1,53 @@
 import * as React from 'react';
 import { Component, FormEvent, KeyboardEvent } from 'react';
-import TextField from 'material-ui/TextField';
-import SelectField from 'material-ui/SelectField';
-import MenuItem from 'material-ui/MenuItem';
-import Checkbox from 'material-ui/Checkbox';
-import Chip from 'material-ui/Chip';
-import Toggle from 'material-ui/Toggle';
 import LinearProgress from 'material-ui/LinearProgress';
-import RaisedButton from 'material-ui/RaisedButton';
 import Snackbar from 'material-ui/Snackbar';
-import { GridList, GridTile } from 'material-ui/GridList';
 import axios from 'axios';
-import IconButton from 'material-ui/IconButton';
-import StarBorder from 'material-ui/svg-icons/toggle/star-border';
-import { Card, CardActions, CardHeader, CardMedia, CardTitle, CardText } from 'material-ui/Card';
-import FlatButton from 'material-ui/FlatButton';
-import CircularProgress from 'material-ui/CircularProgress';
 import { html as htmlBeautify } from 'js-beautify';
+import { ISite, ICategory, ICountry, IReturnPolicyDetail, IShippingServiceDetails, IDispatchTimeMaxDetails, IItemTotalFee, IHomePageState, IForm, IAccount } from '../../../../interfaces';
 import { eBayConstantData } from '../../../../eBayConstantData';
-import { ISite, ICategory, ICountry, IReturnPolicyDetail, IShippingServiceDetails, IDispatchTimeMaxDetails, IItemTotalFee } from '../../../../interfaces';
-import { IAccount } from '../success/SuccessPage';
-
-interface IForm {
-    siteID: string;
-    title: string;
-    description: string;
-    keywords: string[];
-    currentKeyword: string;
-    categoryID: string;
-    startPrice: number;
-    country: string;
-    currency: string;
-    dispatchTimeMax: string;
-    listingDuration: string;
-    listingType: string;
-    paymentMethods: string[];
-    paypalEmail: string;
-    pictureURLs: string[];
-    currentPictureURL: string;
-    postalCode: string;
-    quantity: number;
-    returnsAccepted: boolean;
-    refund: string;
-    returnPolicyDescription: string;
-    returnsWithin: string;
-    shippingCostPaidBy: 'Buyer' | 'Seller';
-    domesticShippingService: string;
-    supportsInternationalShipping: boolean;
-    internationalShippingService: string;
-    shippingType: string;
-    shippingServicePriority: number;
-    shippingServiceCost: number;
-    brand: string;
-    UPC: string;
-    currentSpecific: string;
-    itemSpecifics: string[];
-    APIAuthToken: string;
-    [key: string]: any;
-}
-
-interface IHomePageState {
-    sites: ISite[];
-    categories: ICategory[];
-    countries: ICountry[];
-    currencies: string[];
-    listingTypes: any;
-    listingDurations: any;
-    paymentMethods: string[];
-    returnPolicySupport: false;
-    refundOptions: IReturnPolicyDetail[];
-    returnsWithinOptions: IReturnPolicyDetail[];
-    shippingServicesObjects: IShippingServiceDetails[];
-    listItemSubmitLoading: boolean;
-    snackbarOpen: boolean;
-    snackbarMessage: string;
-    dispatchTimeMaxOptions: IDispatchTimeMaxDetails[];
-    accounts: IAccount[];
-    gettingDataFromShruti: boolean;
-    form: IForm;
-}
+import { homeInitialState } from './homeInitialState';
+import { PageLoader } from './childComponents/PageLoader';
+import { AccountSelectField } from './childComponents/AccountSelectField';
+import { SiteSelectField } from './childComponents/SiteSelectField';
+import { TitleTextField } from './childComponents/TitleTextField';
+import { DescriptionTextField } from './childComponents/DescriptionTextField';
+import { DescriptionPreview } from './childComponents/DescriptionPreview';
+import { BrandTextField } from './childComponents/BrandTextField';
+import { UPCTextField } from './childComponents/UPCTextField';
+import { CurrentKeywordTextField } from './childComponents/CurrentKeywordTextField';
+import { KeywordsChips } from './childComponents/KeywordsChips';
+import { CategorySelectField } from './childComponents/CategorySelectField';
+import { CountrySelectField } from './childComponents/CountrySelectField';
+import { PostalCodeTextField } from './childComponents/PostalCodeTextField';
+import { StartPriceTextField } from './childComponents/StartPriceTextField';
+import { CurrencySelectField } from './childComponents/CurrencySelectField';
+import { DispatchTimeMaxTextField } from './childComponents/DispatchTimeMaxSelectField';
+import { ListingDurationSelectField } from './childComponents/ListingDurationSelectField';
+import { ListingTypeSelectField } from './childComponents/ListingTypeSelectField';
+import { PaymentMethodsSelectField } from './childComponents/PaymentMethodsSelectField';
+import { PayPalEmailTextField } from './childComponents/PayPalEmailTextField';
+import { PictureUrlTextField } from './childComponents/PictureUrlTextField';
+import { AddedPictures } from './childComponents/AddedPictures';
+import { QuantityTextField } from './childComponents/QuantityTextField';
+import { ReturnsAcceptedToggleField } from './childComponents/ReturnsAcceptedToggleField';
+import { RefundSelectField } from './childComponents/RefundSelectField';
+import { ReturnPolicyDescriptionTextField } from './childComponents/ReturnPolicyDescriptionTextField';
+import { ReturnsWithinSelectField } from './childComponents/ReturnsWithinSelectField';
+import { ShippingCostPaidBySelectField } from './childComponents/ShippingCostPaidBySelectField';
+import { ShippingServicePriorityTextField } from './childComponents/ShippingServicePriorityTextField';
+import { ShippingServiceCostTextField } from './childComponents/ShippingServiceCostTextField';
+import { ShippingServiceSelectField } from './childComponents/ShippingServiceSelectField';
+import { ShippingTypeSelectField } from './childComponents/ShippingTypeSelectField';
+import { InternationalShippingToggleField } from './childComponents/InternationalShippingToggleField';
+import { ItemSpecificsChips } from './childComponents/ItemSpecificsChips';
+import { CurrentSpecificTextField } from './childComponents/CurrentSpecificTextField';
+import { AddListingButton } from './childComponents/AddListingButton';
 
 export class HomePage extends Component<any, IHomePageState> {
     constructor(props: any) {
         super(props);
-        this.state = {
-            sites: eBayConstantData.sites,
-            categories: [],
-            countries: eBayConstantData.countries,
-            currencies: eBayConstantData.currencies,
-            listingTypes: eBayConstantData.listingTypes,
-            refundOptions: [],
-            listingDurations: eBayConstantData.listingDurations,
-            returnPolicySupport: false,
-            returnsWithinOptions: [],
-            paymentMethods: [],
-            shippingServicesObjects: [],
-            listItemSubmitLoading: false,
-            snackbarOpen: false,
-            snackbarMessage: '',
-            dispatchTimeMaxOptions: [],
-            accounts: [],
-            gettingDataFromShruti: false,
-            form: {
-                siteID: eBayConstantData.sites[0].ID,
-                title: '',
-                description: '',
-                currentKeyword: '',
-                keywords: [],
-                categoryID: '',
-                startPrice: 0,
-                country: eBayConstantData.countries[0].code,
-                currency: 'INR',
-                dispatchTimeMax: '3',
-                listingDuration: 'GTC',
-                listingType: eBayConstantData.listingTypes.FIXED_PRICE_ITEM,
-                paymentMethods: [],
-                paypalEmail: '',
-                pictureURLs: [],
-                currentPictureURL: '',
-                postalCode: '',
-                quantity: 1,
-                returnsAccepted: true,
-                refund: eBayConstantData.refundOptions.MONEY_BACK_OR_REPLACEMENT,
-                returnPolicyDescription: '',
-                returnsWithin: '',
-                shippingCostPaidBy: 'Buyer',
-                shippingServicePriority: 1,
-                shippingServiceCost: 0,
-                domesticShippingService: 'Other',
-                shippingType: 'Flat',
-                supportsInternationalShipping: true,
-                internationalShippingService: 'StandardInternational',
-                brand: '',
-                UPC: '',
-                currentSpecific: '',
-                itemSpecifics: [],
-                APIAuthToken: undefined
-            }
-        };
+        this.state = homeInitialState;
         this.handleSelectChange = this.handleSelectChange.bind(this);
         this.stateFormInputValueChange = this.stateFormInputValueChange.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -161,492 +71,190 @@ export class HomePage extends Component<any, IHomePageState> {
             <div className='home-page'>
                 {
                     this.state.gettingDataFromShruti ?
-                        <div className='circularProgress'>
-                            <CircularProgress
-                                size={120}
-                                thickness={7}
-                            />
-                        </div> :
+                        <PageLoader /> :
                         <div className='form'>
-                            <SelectField
-                                className='selectField'
-                                floatingLabelText='eBay Account'
-                                value={this.state.form.APIAuthToken}
-                                onChange={this.handleSelectChange.bind(this, 'APIAuthToken')}
-                            >
-                                {this.state.accounts.map((account, index) => {
-                                    return <MenuItem
-                                        value={account.token}
-                                        primaryText={account.username}
-                                        key={index}
-                                    />;
-                                })}
-                            </SelectField>
-                            <SelectField
-                                className='selectField'
-                                floatingLabelText='Site'
-                                value={this.state.form.siteID}
-                                onChange={this.handleSelectChange.bind(this, 'siteID')}
-                                disabled={!this.state.categories}
-                            >
-                                {this.state.sites.map(site => {
-                                    return <MenuItem
-                                        value={site.ID}
-                                        primaryText={site.name}
-                                        key={site.ID}
-                                    />;
-                                })}
-                            </SelectField>
-                            <TextField
-                                name='title'
-                                value={this.state.form.title}
-                                className='textField'
-                                floatingLabelText={`Title (${this.state.form.title.length}/80)`}
-                                errorText={
-                                    this.state.form.title.length > 80 ?
-                                        'Item title cannot contain more than 80 characters' :
-                                        null
-                                }
-                                onChange={this.handleInputChange}
+                            <AccountSelectField
+                                token={this.state.form.APIAuthToken}
+                                handleSelectChange={this.handleSelectChange.bind(this, 'APIAuthToken')}
+                                accounts={this.state.accounts}
                             />
-                            <TextField
-                                name='description'
-                                value={this.state.form.description}
-                                className='textField'
-                                floatingLabelText='Description (HTML code supported)'
-                                multiLine={true}
-                                rowsMax={20}
-                                onChange={this.handleInputChange}
-                                disabled={typeof this.state.form.description == 'undefined'}
+                            <SiteSelectField
+                                siteID={this.state.form.siteID}
+                                handleSelectChange={this.handleSelectChange.bind(this, 'siteID')}
+                                categories={this.state.categories}
+                                sites={this.state.sites}
+                            />
+                            <TitleTextField
+                                title={this.state.form.title}
+                                handleInputChange={this.handleInputChange}
+                            />
+                            <DescriptionTextField
+                                description={this.state.form.description}
+                                handleInputChange={this.handleInputChange}
                             />
                             {
                                 typeof !!~this.state.form.description.length && !!~this.state.form.description.indexOf('</') &&
-                                <Card className='card'>
-                                    <CardText className='cardText'>
-                                        <h3>DESCRIPTION PREVIEW</h3>
-                                        <div dangerouslySetInnerHTML={{ __html: this.state.form.description }} />
-                                    </CardText>
-                                </Card>
+                                <DescriptionPreview description={this.state.form.description} />
                             }
-                            <TextField
-                                name='brand'
-                                value={this.state.form.brand}
-                                className='textField'
-                                floatingLabelText='Brand'
-                                onChange={this.handleInputChange}
+                            <BrandTextField
+                                brand={this.state.form.brand}
+                                handleInputChange={this.handleInputChange}
                             />
-                            <TextField
-                                name='UPC'
-                                value={this.state.form.UPC}
-                                className='textField'
-                                floatingLabelText='UPC'
-                                onChange={this.handleInputChange}
+                            <UPCTextField
+                                UPC={this.state.form.UPC}
+                                handleInputChange={this.handleInputChange}
                             />
-                            <TextField
-                                name='currentKeyword'
-                                value={this.state.form.currentKeyword}
-                                className='textField'
-                                floatingLabelText='Category Keywords (Only used to load categories, not included in item listing)'
-                                hintText='Press Enter to add keyword'
-                                onChange={this.handleInputChange}
-                                onKeyPress={this.addKeyword}
-                                disabled={!this.state.categories}
+                            <CurrentKeywordTextField
+                                keyword={this.state.form.currentKeyword}
+                                handleInputChange={this.handleInputChange}
+                                addKeyword={this.addKeyword}
+                                categories={this.state.categories}
                             />
-                            <div className='chips'>
-                                {this.state.form.keywords.map((keyword, index) => {
-                                    return (
-                                        <Chip
-                                            className='chip'
-                                            onRequestDelete={
-                                                this.state.categories ?
-                                                    () => this.removeKeyword(index) :
-                                                    null
-                                            }
-                                            key={index}
-                                        >
-                                            {keyword}
-                                        </Chip>
-                                    );
-                                })}
-                            </div>
-                            {
-                                !!this.state.categories ?
-                                    <SelectField
-                                        className='selectField'
-                                        floatingLabelText='Category'
-                                        value={this.state.form.categoryID}
-                                        onChange={this.handleSelectChange.bind(this, 'categoryID')}
-                                    >
-                                        {this.state.categories.map(category => {
-                                            return <MenuItem
-                                                value={category.ID}
-                                                primaryText={category.name}
-                                                key={category.ID}
-                                            />;
-                                        })}
-                                    </SelectField> :
-                                    <div>
-                                        <p className='materialParagraph'>Updating categories...</p>
-                                        <LinearProgress mode="indeterminate" />
-                                    </div>
-                            }
-                            <SelectField
-                                className='selectField'
-                                floatingLabelText='Country'
-                                value={this.state.form.country}
-                                onChange={this.handleSelectChange.bind(this, 'country')}
-                            >
-                                {this.state.countries.map((country, index) => {
-                                    return <MenuItem
-                                        value={country.code}
-                                        primaryText={country.name}
-                                        key={index}
-                                    />;
-                                })}
-                            </SelectField>
-                            <TextField
-                                name='postalCode'
-                                value={this.state.form.postalCode}
-                                className='textField'
-                                floatingLabelText='Postal Code'
-                                onChange={this.handleInputChange}
+                            <KeywordsChips
+                                keywords={this.state.form.keywords}
+                                categories={this.state.categories}
+                                removeKeyword={this.removeKeyword}
                             />
-                            <TextField
-                                name='startPrice'
-                                value={this.state.form.startPrice}
-                                type='number'
-                                className='textField'
-                                floatingLabelText='Price'
-                                onChange={this.handleInputChange}
+                            <CategorySelectField
+                                categories={this.state.categories}
+                                categoryID={this.state.form.categoryID}
+                                handleSelectChange={this.handleSelectChange.bind(this, 'categoryID')}
                             />
-                            <SelectField
-                                className='selectField'
-                                floatingLabelText='Currency'
-                                value={this.state.form.currency}
-                                onChange={this.handleSelectChange.bind(this, 'currency')}
-                            >
-                                {this.state.currencies.map((currency, index) => {
-                                    return <MenuItem
-                                        value={currency}
-                                        primaryText={currency}
-                                        key={index}
-                                    />;
-                                })}
-                            </SelectField>
-                            {
-                                this.state.dispatchTimeMaxOptions ?
-                                    <SelectField
-                                        value={this.state.form.dispatchTimeMax}
-                                        className='selectField'
-                                        floatingLabelText='Maximum Dispatch Time'
-                                        onChange={this.handleSelectChange.bind(this, 'dispatchTimeMax')}
-                                    >
-                                        {this.state.dispatchTimeMaxOptions.map((dispatchTimeMaxOption, index) => {
-                                            return <MenuItem
-                                                value={dispatchTimeMaxOption.value}
-                                                primaryText={dispatchTimeMaxOption.description}
-                                                key={index}
-                                            />;
-                                        })}
-                                    </SelectField> :
-                                    <div>
-                                        <p className='materialParagraph'>Updating dispatch time max options...</p>
-                                        <LinearProgress mode="indeterminate" />
-                                    </div>
-                            }
-                            <SelectField
-                                className='selectField'
-                                floatingLabelText='Listing Duration'
-                                value={this.state.form.listingDuration}
-                                onChange={this.handleSelectChange.bind(this, 'listingDuration')}
-                            >
-                                {Object.keys(this.state.listingDurations.common)
-                                    .map((listingDuration, index) => {
-                                        return <MenuItem
-                                            value={listingDuration}
-                                            primaryText={this.state.listingDurations.common[listingDuration]}
-                                            key={listingDuration + index}
-                                        />;
-                                    })}
-                                {
-                                    this.state.form.listingType === this.state.listingTypes.FIXED_PRICE_ITEM &&
-                                    Object.keys(this.state.listingDurations.fixed)
-                                        .map((listingDuration, index) => {
-                                            return <MenuItem
-                                                value={listingDuration}
-                                                primaryText={this.state.listingDurations.fixed[listingDuration]}
-                                                key={listingDuration + index}
-                                            />;
-                                        })
-                                }
-                            </SelectField>
-                            <SelectField
-                                className='selectField'
-                                floatingLabelText='Listing Type'
-                                value={this.state.form.listingType}
-                                onChange={this.handleSelectChange.bind(this, 'listingType')}
-                            >
-                                {Object.keys(this.state.listingTypes).map((listingType, index) => {
-                                    return <MenuItem
-                                        value={this.state.listingTypes[listingType]}
-                                        primaryText={this.state.listingTypes[listingType]}
-                                        key={index}
-                                    />;
-                                })}
-                            </SelectField>
-                            {
-                                !!this.state.paymentMethods ?
-                                    <SelectField
-                                        className='selectField'
-                                        floatingLabelText='Payment Method'
-                                        multiple={true}
-                                        value={this.state.form.paymentMethods}
-                                        onChange={this.handleSelectChange.bind(this, 'paymentMethods')}
-                                    >
-                                        {this.state.paymentMethods.map(paymentMethod => {
-                                            return <MenuItem
-                                                value={paymentMethod}
-                                                primaryText={paymentMethod}
-                                                key={paymentMethod}
-                                            />;
-                                        })}
-                                    </SelectField> :
-                                    <div>
-                                        <p className='materialParagraph'>Updating payment methods...</p>
-                                        <LinearProgress mode="indeterminate" />
-                                    </div>
-                            }
+                            <CountrySelectField
+                                countries={this.state.countries}
+                                country={this.state.form.country}
+                                handleSelectChange={this.handleSelectChange.bind(this, 'country')}
+                            />
+                            <PostalCodeTextField
+                                postalCode={this.state.form.postalCode}
+                                handleInputChange={this.handleInputChange}
+                            />
+                            <StartPriceTextField
+                                startPrice={this.state.form.startPrice}
+                                handleInputChange={this.handleInputChange}
+                            />
+                            <CurrencySelectField
+                                currencies={this.state.currencies}
+                                currency={this.state.form.currency}
+                                handleSelectChange={this.handleSelectChange.bind(this, 'currency')}
+                            />
+                            <DispatchTimeMaxTextField
+                                dispatchTimeMax={this.state.form.dispatchTimeMax}
+                                dispatchTimeMaxOptions={this.state.dispatchTimeMaxOptions}
+                                handleSelectChange={this.handleSelectChange.bind(this, 'dispatchTimeMax')}
+                            />
+                            <ListingDurationSelectField
+                                listingType={this.state.form.listingType}
+                                listingDuration={this.state.form.listingDuration}
+                                handleSelectChange={this.handleSelectChange.bind(this, 'listingDuration')}
+                            />
+                            <ListingTypeSelectField
+                                listingType={this.state.form.listingType}
+                                handleSelectChange={this.handleSelectChange.bind(this, 'listingType')}
+                            />
+                            <PaymentMethodsSelectField
+                                paymentMethods={this.state.paymentMethods}
+                                selectedPaymentMethods={this.state.form.paymentMethods}
+                                handleSelectChange={this.handleSelectChange.bind(this, 'paymentMethods')}
+                            />
                             {
                                 !!~this.state.form.paymentMethods.indexOf('PayPal') &&
-                                <TextField
-                                    name='paypalEmail'
-                                    value={this.state.form.paypalEmail}
-                                    type='email'
-                                    className='textField'
-                                    floatingLabelText='PayPal Email Address'
-                                    onChange={this.handleInputChange}
+                                <PayPalEmailTextField
+                                    handleInputChange={this.handleInputChange}
+                                    paypalEmail={this.state.form.paypalEmail}
                                 />
                             }
-                            <TextField
-                                name='currentPictureURL'
-                                value={this.state.form.currentPictureURL}
-                                className='textField'
-                                floatingLabelText='Picture URLs'
-                                hintText='Press Enter to add picture URL'
-                                onChange={this.handleInputChange}
-                                onKeyPress={this.addPictureURL}
+                            <PictureUrlTextField
+                                currentPictureURL={this.state.form.currentPictureURL}
+                                addPictureURL={this.addPictureURL}
+                                handleInputChange={this.handleInputChange}
                             />
-                            <div className='picturesDiv'>
-                                {this.state.form.pictureURLs.map((pictureURL, index) => (
-                                    <Card className='picture' key={index}>
-                                        <CardMedia>
-                                            <img src={pictureURL} />
-                                        </CardMedia>
-                                        <CardActions>
-                                            <FlatButton label='Remove' onClick={() => this.removePictureURL(index)} />
-                                            <FlatButton label='Open' href={pictureURL} target='_blank' />
-                                        </CardActions>
-                                    </Card>
-                                ))}
-                            </div>
-                            <TextField
-                                name='quantity'
-                                value={this.state.form.quantity}
-                                type='email'
-                                className='textField'
-                                floatingLabelText='Item Quantity'
-                                onChange={this.handleInputChange}
+                            <AddedPictures
+                                pictureURLs={this.state.form.pictureURLs}
+                                removePictureURL={this.removePictureURL}
+                            />
+                            <QuantityTextField
+                                quantity={this.state.form.quantity}
+                                handleInputChange={this.handleInputChange}
                             />
                             {
                                 this.state.returnPolicySupport &&
-                                <div className='toggleDiv'>
-                                    <Toggle
-                                        className='toggle'
-                                        name='returnsAccepted'
-                                        label='Returns Accepted'
-                                        defaultToggled={this.state.form.returnsAccepted}
-                                        onToggle={this.handleInputChange}
-                                    />
-                                </div>
+                                <ReturnsAcceptedToggleField
+                                    returnsAccepted={this.state.form.returnsAccepted}
+                                    handleInputChange={this.handleInputChange}
+                                />
                             }
                             {
                                 this.state.form.returnsAccepted &&
                                 <div>
-                                    {
-                                        !!this.state.refundOptions ?
-                                            <SelectField
-                                                className='selectField'
-                                                floatingLabelText='Refund Option'
-                                                value={this.state.form.refund}
-                                                onChange={this.handleSelectChange.bind(this, 'refund')}
-                                            >
-                                                {this.state.refundOptions.map((refundOption, index) => {
-                                                    return <MenuItem
-                                                        value={refundOption.name}
-                                                        primaryText={refundOption.description}
-                                                        key={index}
-                                                    />;
-                                                })}
-                                            </SelectField> :
-                                            <div>
-                                                <p className='materialParagraph'>Updating refund options...</p>
-                                                <LinearProgress mode="indeterminate" />
-                                            </div>
-                                    }
-                                    <TextField
-                                        name='returnPolicyDescription'
-                                        value={this.state.form.returnPolicyDescription}
-                                        className='textField'
-                                        floatingLabelText='Return Policy Description'
-                                        multiLine={true}
-                                        onChange={this.handleInputChange}
+                                    <RefundSelectField
+                                        refundOptions={this.state.refundOptions}
+                                        refund={this.state.form.refund}
+                                        handleSelectChange={this.handleSelectChange.bind(this, 'refund')}
                                     />
-                                    {
-                                        !!this.state.returnsWithinOptions ?
-                                            <SelectField
-                                                className='selectField'
-                                                floatingLabelText='Returns Within'
-                                                value={this.state.form.returnsWithin}
-                                                onChange={this.handleSelectChange.bind(this, 'returnsWithin')}
-                                            >
-                                                {this.state.returnsWithinOptions.map((returnsWithinOption, index) => {
-                                                    return <MenuItem
-                                                        value={returnsWithinOption.name}
-                                                        primaryText={returnsWithinOption.description}
-                                                        key={index}
-                                                    />;
-                                                })}
-                                            </SelectField> :
-                                            <div>
-                                                <p className='materialParagraph'>Updating returns within options...</p>
-                                                <LinearProgress mode="indeterminate" />
-                                            </div>
-                                    }
-                                    <SelectField
-                                        className='selectField'
-                                        floatingLabelText='Shipping Cost Paid By'
-                                        value={this.state.form.shippingCostPaidBy}
-                                        onChange={this.handleSelectChange.bind(this, 'shippingCostPaidBy')}
-                                    >
-                                        <MenuItem value='Buyer' primaryText='Buyer' />
-                                        <MenuItem value='Seller' primaryText='Seller' />
-                                    </SelectField>
+                                    <ReturnPolicyDescriptionTextField
+                                        returnPolicyDescription={this.state.form.returnPolicyDescription}
+                                        handleInputChange={this.handleInputChange}
+                                    />
+                                    <ReturnsWithinSelectField
+                                        returnsWithin={this.state.form.returnsWithin}
+                                        returnsWithinOptions={this.state.returnsWithinOptions}
+                                        handleSelectChange={this.handleSelectChange.bind(this, 'returnsWithin')}
+                                    />
+                                    <ShippingCostPaidBySelectField
+                                        shippingCostPaidBy={this.state.form.shippingCostPaidBy}
+                                        handleSelectChange={this.handleSelectChange.bind(this, 'shippingCostPaidBy')}
+                                    />
                                 </div>
                             }
-                            <TextField
-                                name='shippingServicePriority'
-                                value={this.state.form.shippingServicePriority}
-                                type='number'
-                                className='textField'
-                                floatingLabelText='Shipping Service Priority'
-                                onChange={this.handleInputChange}
+                            <ShippingServicePriorityTextField
+                                shippingServicePriority={this.state.form.shippingServicePriority}
+                                handleInputChange={this.handleInputChange}
                             />
-                            <TextField
-                                name='shippingServiceCost'
-                                value={this.state.form.shippingServiceCost}
-                                type='number'
-                                className='textField'
-                                floatingLabelText={`Shipping Service Cost (${this.state.form.currency})`}
-                                onChange={this.handleInputChange}
+                            <ShippingServiceCostTextField
+                                shippingServiceCost={this.state.form.shippingServiceCost}
+                                currency={this.state.form.currency}
+                                handleInputChange={this.handleInputChange}
+                            />
+                            <ShippingServiceSelectField
+                                shippingServicesObjects={this.state.shippingServicesObjects}
+                                shippingService={this.state.form.domesticShippingService}
+                                shippingType='Domestic'
+                                handleSelectChange={this.handleSelectChange.bind(this, 'domesticShippingService')}
                             />
                             {
-                                !!this.state.shippingServicesObjects ?
-                                    <SelectField
-                                        className='selectField'
-                                        floatingLabelText='Domestic Shipping Service'
-                                        value={this.state.form.domesticShippingService}
-                                        onChange={this.handleSelectChange.bind(this, 'domesticShippingService')}
-                                    >
-                                        {this.state.shippingServicesObjects.filter(service => !service.isInternational)
-                                            .map((service, index) => {
-                                                return <MenuItem
-                                                    value={service.name}
-                                                    primaryText={service.name}
-                                                    key={index}
-                                                />;
-                                            })}
-                                    </SelectField> :
-                                    <div>
-                                        <p className='materialParagraph'>Updating shipping services...</p>
-                                        <LinearProgress mode="indeterminate" />
-                                    </div>
-                            }
-                            {
-                                !!this.state.shippingServicesObjects && !!this.state.shippingServicesObjects.length &&
-                                !!this.state.form.domesticShippingService &&
-                                <SelectField
-                                    className='selectField'
-                                    floatingLabelText='Shipping Type'
-                                    value={this.state.form.shippingType}
-                                    onChange={this.handleSelectChange.bind(this, 'shippingType')}
-                                >
-                                    {this.state.shippingServicesObjects && this.state.shippingServicesObjects.find(service => service.name === this.state.form.domesticShippingService)
-                                        .types.map(type => {
-                                            return <MenuItem
-                                                value={type}
-                                                primaryText={type}
-                                                key={type}
-                                            />;
-                                        })}
-                                </SelectField>
-                            }
-                            <div className='toggleDiv'>
-                                <Toggle
-                                    className='toggle'
-                                    name='supportsInternationalShipping'
-                                    label='International Shipping Support'
-                                    defaultToggled={this.state.form.supportsInternationalShipping}
-                                    onToggle={this.handleInputChange}
+                                this.domesticShippingServicesAvailable() &&
+                                <ShippingTypeSelectField
+                                    shippingType={this.state.form.shippingType}
+                                    shippingServicesObjects={this.state.shippingServicesObjects}
+                                    domesticShippingService={this.state.form.domesticShippingService}
+                                    handleSelectChange={this.handleSelectChange.bind(this, 'shippingType')}
                                 />
-                            </div>
+                            }
+                            <InternationalShippingToggleField
+                                supportsInternationalShipping={this.state.form.supportsInternationalShipping}
+                                handleInputChange={this.handleInputChange}
+                            />
                             {
                                 !!this.state.form.supportsInternationalShipping &&
-                                (!!this.state.shippingServicesObjects ?
-                                    <SelectField
-                                        className='selectField'
-                                        floatingLabelText='International Shipping Service'
-                                        value={this.state.form.internationalShippingService}
-                                        onChange={this.handleSelectChange.bind(this, 'internationalShippingService')}
-                                    >
-                                        {this.state.shippingServicesObjects.filter(service => service.isInternational)
-                                            .map((service, index) => {
-                                                return <MenuItem
-                                                    value={service.name}
-                                                    primaryText={service.name}
-                                                    key={index}
-                                                />;
-                                            })}
-                                    </SelectField> :
-                                    <div>
-                                        <p className='materialParagraph'>Updating shipping services...</p>
-                                        <LinearProgress mode="indeterminate" />
-                                    </div>)
+                                <ShippingServiceSelectField
+                                    shippingServicesObjects={this.state.shippingServicesObjects}
+                                    shippingService={this.state.form.internationalShippingService}
+                                    shippingType='International'
+                                    handleSelectChange={this.handleSelectChange.bind(this, 'internationalShippingService')}
+                                />
                             }
-                            <TextField
-                                name='currentSpecific'
-                                value={this.state.form.currentSpecific}
-                                className='textField'
-                                floatingLabelText='Item specifics (Use this field if asked to include specific fields for an item)'
-                                hintText='Press Enter to add. Separate name and value with colon and whitespace. Eg: Colour: red'
-                                onChange={this.handleInputChange}
-                                onKeyPress={this.addSpecific}
+                            <CurrentSpecificTextField
+                                currentSpecific={this.state.form.currentSpecific}
+                                addSpecific={this.addSpecific}
+                                handleInputChange={this.handleInputChange}
                             />
-                            <div className='chips'>
-                                {this.state.form.itemSpecifics.map((specific, index) => {
-                                    return <Chip
-                                        className='chip'
-                                        onRequestDelete={() => this.removeSpecific(index)}
-                                        key={index}
-                                    >
-                                        {specific}
-                                    </Chip>;
-                                })}
-                            </div>
-                            <RaisedButton
-                                className='submitButton'
-                                label='List Item'
-                                primary={true}
-                                onClick={this.submitItemListing}
+                            <ItemSpecificsChips
+                                itemSpecifics={this.state.form.itemSpecifics}
+                                removedSpecific={this.removeSpecific}
+                            />
+                            <AddListingButton
+                                submitItemListing={this.submitItemListing}
                                 disabled={this.shouldDisableButton()}
                             />
                             {
@@ -974,8 +582,11 @@ export class HomePage extends Component<any, IHomePageState> {
         const username: string = localStorage.getItem(selectedAccKey);
         const accountsKey: string = 'eBayListerAccounts';
         const accounts: IAccount[] = JSON.parse(localStorage.getItem(accountsKey)) || [];
-        if (!username || !accounts || !accounts.length) return this.props.history.push('/accounts');
+        if (!username || !accounts || !accounts.length) {
+            return this.props.history.push('/accounts');
+        }
         this.setState({ accounts }, () => {
+            console.log(this.state.accounts);
             const selectedAccount: IAccount = this.state.accounts.find(account => account.username === username);
             this.stateFormInputValueChange('APIAuthToken', selectedAccount.token);
         });
@@ -1051,10 +662,12 @@ export class HomePage extends Component<any, IHomePageState> {
 
     fillUserSpecificEmail(): void {
         const selectedAccount: IAccount = this.state.accounts.find(account => account.token === this.state.form.APIAuthToken);
-        if (selectedAccount.username === 'asvpublic')
-            this.stateFormInputValueChange('paypalEmail', 'avaswani@yahoo.com');
-        else if (selectedAccount.username === 'chessustore')
-            this.stateFormInputValueChange('paypalEmail', 'asvpublic@yahoo.com');
+        if (selectedAccount) {
+            if (selectedAccount.username === 'asvpublic')
+                this.stateFormInputValueChange('paypalEmail', 'avaswani@yahoo.com');
+            else if (selectedAccount.username === 'chessustore')
+                this.stateFormInputValueChange('paypalEmail', 'asvpublic@yahoo.com');
+        }
     }
 
     shouldDisableButton(): boolean {
@@ -1099,5 +712,10 @@ export class HomePage extends Component<any, IHomePageState> {
         const selectedDispatchTimeMax: string = this.state.form.dispatchTimeMax;
         return !!selectedDispatchTimeMax && !!selectedDispatchTimeMax.length
             && !!~dispatchTimeMaxValues.indexOf(selectedDispatchTimeMax);
+    }
+
+    domesticShippingServicesAvailable(): boolean {
+        return !!this.state.shippingServicesObjects && !!this.state.shippingServicesObjects.length &&
+            !!this.state.form.domesticShippingService;
     }
 }
