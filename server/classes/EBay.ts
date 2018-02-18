@@ -183,8 +183,12 @@ export class EBay {
                 .then(JSONResBody => {
                     const { Errors, SuggestedCategoryArray } = JSONResBody.GetSuggestedCategoriesResponse;
                     if (Errors && Errors.length) {
+                        Errors.forEach(err => console.log(err));
                         const errors: string[] = Errors.map(error => error.LongMessage[0]);
-                        return reject(errors);
+                        if (errors && errors.length)
+                            return reject(errors);
+                    } else if (!SuggestedCategoryArray || !SuggestedCategoryArray.length) {
+                        return resolve([]);
                     }
                     const categories: ICategory[] = SuggestedCategoryArray[0].SuggestedCategory.map(category => {
                         return {
@@ -194,7 +198,10 @@ export class EBay {
                     });
                     resolve(categories);
                 })
-                .catch(err => reject(err));
+                .catch(err => {
+                    console.log(err);
+                    reject(err);
+                });
         });
     }
 

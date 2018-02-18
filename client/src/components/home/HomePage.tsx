@@ -93,7 +93,7 @@ export class HomePage extends Component<any, IHomePageState> {
                                 handleInputChange={this.handleInputChange}
                             />
                             {
-                                typeof !!~this.state.form.description.length && !!~this.state.form.description.indexOf('</') &&
+                                !!~this.state.form.description.length && !!~this.state.form.description.indexOf('</') &&
                                 <DescriptionPreview description={this.state.form.description} />
                             }
                             <BrandTextField
@@ -561,7 +561,7 @@ export class HomePage extends Component<any, IHomePageState> {
     }
 
     alertError(err: string | string[]): void {
-        const errorToDisplay: string = typeof err === 'string' ? err : err.join('\n');
+        const errorToDisplay = typeof err === 'string' ? err : err.join('\n');
         alert(errorToDisplay);
     }
 
