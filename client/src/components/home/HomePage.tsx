@@ -336,11 +336,7 @@ export class HomePage extends Component<any, IHomePageState> {
     }
 
     getSuggestedItemCategories(): void {
-        if (!this.state.form.keywords || !this.state.form.keywords.length) {
-            return this.setState({ 
-                categories: [] 
-            }, () => this.stateFormInputValueChange('categoryID', ''));
-        }
+        if (!this.state.form.keywords || !this.state.form.keywords.length) return;
         this.setState({ categories: undefined }, () => {
             const selectedSite: ISite = this.state.sites.find(site => site.ID === this.state.form.siteID);
             const reqBody = {
